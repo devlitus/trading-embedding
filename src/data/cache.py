@@ -13,6 +13,18 @@ import logging
 from datetime import datetime, timedelta
 import hashlib
 
+# Importar gestor de configuración
+try:
+    from ..config import is_cache_disabled, is_development_mode, get_config
+except ImportError:
+    # Fallback si no se puede importar el gestor de configuración
+    def is_cache_disabled():
+        return False
+    def is_development_mode():
+        return False
+    def get_config(key, default=None):
+        return default
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -37,6 +49,17 @@ class TradingCache:
             use_redis: Si usar Redis o caché en memoria
             default_ttl: TTL por defecto en segundos
         """
+        # Verificar si la caché está deshabilitada por configuración
+        self.cache_disabled = is_cache_disabled()
+        
+        if self.cache_disabled:
+            logger.info("Caché deshabilitada por configuración de desarrollo")
+            self.use_redis = False
+            self.default_ttl = default_ttl
+            self.memory_cache = {}
+            self.cache_timestamps = {}
+            return
+        
         self.use_redis = use_redis and REDIS_AVAILABLE
         self.default_ttl = default_ttl
         self.memory_cache = {}
@@ -79,6 +102,10 @@ class TradingCache:
         Returns:
             True si se almacenó correctamente
         """
+        # Si la caché está deshabilitada, simular éxito pero no almacenar
+        if self.cache_disabled:
+            return True
+            
         ttl = ttl or self.default_ttl
         
         try:
@@ -105,6 +132,10 @@ class TradingCache:
         Returns:
             Valor almacenado o None si no existe o expiró
         """
+        # Si la caché está deshabilitada, siempre retornar None
+        if self.cache_disabled:
+            return None
+            
         try:
             if self.use_redis:
                 serialized_value = self.redis_client.get(key)
@@ -130,6 +161,10 @@ class TradingCache:
         """
         Elimina una clave del caché
         """
+        # Si la caché está deshabilitada, simular éxito
+        if self.cache_disabled:
+            return True
+            
         try:
             if self.use_redis:
                 return bool(self.redis_client.delete(key))
@@ -148,6 +183,10 @@ class TradingCache:
         """
         Verifica si una clave existe en el caché
         """
+        # Si la caché está deshabilitada, siempre retornar False
+        if self.cache_disabled:
+            return False
+            
         try:
             if self.use_redis:
                 return bool(self.redis_client.exists(key))
@@ -169,6 +208,10 @@ class TradingCache:
         """
         Limpia todo el caché
         """
+        # Si la caché está deshabilitada, simular éxito
+        if self.cache_disabled:
+            return True
+            
         try:
             if self.use_redis:
                 return bool(self.redis_client.flushdb())
@@ -261,6 +304,17 @@ class TradingCache:
         """
         Obtiene estadísticas del caché
         """
+        # Si la caché está deshabilitada, retornar estadísticas indicándolo
+        if self.cache_disabled:
+            return {
+                'type': 'disabled',
+                'status': 'Cache disabled by development configuration',
+                'keys_count': 0,
+                'memory_usage': '0 bytes',
+                'connected': False,
+                'development_mode': is_development_mode()
+            }
+            
         try:
             if self.use_redis:
                 info = self.redis_client.info()

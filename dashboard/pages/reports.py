@@ -11,7 +11,7 @@ import json
 from typing import Dict, List, Optional, Tuple
 
 # Configurar rutas del proyecto
-project_root = Path(r"c:\dev\trading_embbeding")
+project_root = Path(r"c:\dev\trading_embedding")
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / 'src'))
 sys.path.insert(0, str(project_root / 'src' / 'data'))

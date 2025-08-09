@@ -45,7 +45,7 @@ Sistema avanzado de trading que utiliza inteligencia artificial y embeddings par
 ## 📁 Estructura del Proyecto
 
 ```
-trading_embbeding/
+trading_embedding/
 ├── src/
 │   ├── data/                 # Módulo de datos (Fase 1)
 │   │   ├── binance_client.py # Cliente de Binance API
@@ -78,7 +78,7 @@ trading_embbeding/
 1. **Clonar el repositorio**
    ```bash
    git clone <repository-url>
-   cd trading_embbeding
+   cd trading_embedding
    ```
 
 2. **Crear entorno virtual**

@@ -15,7 +15,7 @@ import time
 import json
 
 # Agregar los directorios necesarios al path
-project_root = Path(r"c:\dev\trading_embbeding")
+project_root = Path(r"c:\dev\trading_embedding")
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / 'src'))
 sys.path.insert(0, str(project_root / 'src' / 'data'))

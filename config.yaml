@@ -1,186 +1,129 @@
-# Configuración del proyecto - Aplicación de Trading con IA
-
-# === CONFIGURACIÓN FASE 1: ADQUISICIÓN DE DATOS ===
-
-# Configuración de Binance API
-binance:
-  # API keys (usar variables de entorno en producción)
-  api_key: ""  # BINANCE_API_KEY
-  api_secret: ""  # BINANCE_API_SECRET
-  
-  # Configuración de requests
-  base_url: "https://api.binance.com"
-  timeout: 30
-  max_retries: 3
-  retry_delay: 1.0
-  
-  # Rate limiting
-  requests_per_minute: 1200
-  weight_per_minute: 6000
-  
-  # Símbolos por defecto para obtener datos
-  default_symbols:
-    - "BTCUSDT"
-    - "ETHUSDT"
-    - "ADAUSDT"
-    - "DOTUSDT"
-    - "LINKUSDT"
-    - "BNBUSDT"
-    - "SOLUSDT"
-    - "MATICUSDT"
-  
-  # Intervalos soportados
-  supported_intervals:
-    - "1m"
-    - "5m"
-    - "15m"
-    - "30m"
-    - "1h"
-    - "4h"
-    - "1d"
-    - "1w"
-
-# Configuración de Base de Datos
-database:
-  # Tipo de base de datos
-  type: "sqlite"  # sqlite, postgresql (futuro)
-  
-  # SQLite específico
-  sqlite:
-    path: "data/trading.db"
-    timeout: 30
-    check_same_thread: false
-    
-  # Configuración de tablas
-  tables:
-    ohlc_data:
-      name: "ohlc_data"
-      indexes:
-        - ["symbol", "interval", "timestamp"]
-        - ["timestamp"]
-    
-    symbol_metadata:
-      name: "symbol_metadata"
-      indexes:
-        - ["symbol"]
-    
-    pattern_labels:
-      name: "pattern_labels"
-      indexes:
-        - ["symbol", "interval", "start_time"]
-  
-  # Limpieza automática
-  cleanup:
-    enabled: true
-    retention_days: 365
-    cleanup_interval_hours: 24
-
-# Configuración de Caché
-cache:
-  # Tipo de caché
-  type: "memory"  # memory, redis
-  
-  # Configuración general
-  default_ttl: 3600  # 1 hora
-  max_size: 1000  # Máximo elementos en caché
-  
-  # Redis específico (si se usa)
-  redis:
-    host: "localhost"
-    port: 6379
-    db: 0
-    password: null
-    socket_timeout: 5
-    
-  # TTL específicos por tipo de dato
-  ttl_by_type:
-    ohlc_data: 1800  # 30 minutos
-    technical_indicators: 900  # 15 minutos
-    pattern_analysis: 3600  # 1 hora
-    symbol_info: 86400  # 24 horas
-
-# Configuración de Logging
-logging:
-  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
-  format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
-  
-  # Archivos de log
-  files:
-    main:
-      path: "logs/trading_app.log"
-      rotation: "1 day"
-      retention: "30 days"
-      compression: "gz"
-    
-    api_calls:
-      path: "logs/api_calls.log"
-      rotation: "1 day"
-      retention: "7 days"
-    
-    errors:
-      path: "logs/errors.log"
-      rotation: "1 day"
-      retention: "90 days"
-  
-  # Logging por módulo
-  modules:
-    binance_client: "INFO"
-    database: "INFO"
-    cache: "INFO"
-    data_manager: "INFO"
-
-# Configuración de Datos
-data:
-  # Configuración por defecto para obtención de datos
-  default_interval: "1h"
-  default_days_back: 30
-  max_days_back: 365
-  
-  # Configuración de obtención masiva
-  bulk_fetch:
-    delay_between_requests: 0.5  # segundos
-    max_concurrent_requests: 5
-    batch_size: 10
-  
-  # Validación de datos
-  validation:
-    check_gaps: true
-    max_gap_hours: 2
-    check_duplicates: true
-    check_price_anomalies: true
-    max_price_change_percent: 50
-
-# Configuración de Monitoreo
-monitoring:
-  # Health checks
-  health_check:
-    enabled: true
-    interval_minutes: 5
-    
-  # Métricas
-  metrics:
-    enabled: true
-    collection_interval: 60  # segundos
-    
-  # Alertas
-  alerts:
-    enabled: false  # Para fases futuras
-    
-# === CONFIGURACIONES FUTURAS ===
-
-# Análisis Técnico (Fase 2)
 analysis:
   technical_indicators:
     enabled: false
-    
-# Sistema de Etiquetado (Fase 3)
-labeling:
-  enabled: false
-  
-# Machine Learning (Fase 4)
-ml:
-  enabled: false
-  
-# API y Interface (Fase 5)
 api:
   enabled: false
+binance:
+  api_key: ''
+  api_secret: ''
+  base_url: https://api.binance.com
+  default_symbols:
+  - BTCUSDT
+  - ETHUSDT
+  - ADAUSDT
+  - DOTUSDT
+  - LINKUSDT
+  - BNBUSDT
+  - SOLUSDT
+  - MATICUSDT
+  max_retries: 3
+  requests_per_minute: 1200
+  retry_delay: 1.0
+  supported_intervals:
+  - 1m
+  - 5m
+  - 15m
+  - 30m
+  - 1h
+  - 4h
+  - 1d
+  - 1w
+  timeout: 30
+  weight_per_minute: 6000
+cache:
+  default_ttl: 3600
+  max_size: 1000
+  redis:
+    db: 0
+    host: localhost
+    password: null
+    port: 6379
+    socket_timeout: 5
+  ttl_by_type:
+    ohlc_data: 1800
+    pattern_analysis: 3600
+    symbol_info: 86400
+    technical_indicators: 900
+  type: memory
+data:
+  bulk_fetch:
+    batch_size: 10
+    delay_between_requests: 0.5
+    max_concurrent_requests: 5
+  default_days_back: 30
+  default_interval: 1h
+  max_days_back: 365
+  validation:
+    check_duplicates: true
+    check_gaps: true
+    check_price_anomalies: true
+    max_gap_hours: 2
+    max_price_change_percent: 50
+database:
+  cleanup:
+    cleanup_interval_hours: 24
+    enabled: true
+    retention_days: 365
+  sqlite:
+    check_same_thread: false
+    path: data/trading.db
+    timeout: 30
+  tables:
+    ohlc_data:
+      indexes:
+      - - symbol
+        - interval
+        - timestamp
+      - - timestamp
+      name: ohlc_data
+    pattern_labels:
+      indexes:
+      - - symbol
+        - interval
+        - start_time
+      name: pattern_labels
+    symbol_metadata:
+      indexes:
+      - - symbol
+      name: symbol_metadata
+  type: sqlite
+development:
+  debug_mode: true
+  disable_cache: true
+  mock_api: false
+  mode: true
+labeling:
+  enabled: false
+logging:
+  files:
+    api_calls:
+      path: logs/api_calls.log
+      retention: 7 days
+      rotation: 1 day
+    errors:
+      path: logs/errors.log
+      retention: 90 days
+      rotation: 1 day
+    main:
+      compression: gz
+      path: logs/trading_app.log
+      retention: 30 days
+      rotation: 1 day
+  format: '{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}'
+  level: INFO
+  modules:
+    binance_client: INFO
+    cache: INFO
+    data_manager: INFO
+    database: INFO
+ml:
+  enabled: false
+monitoring:
+  alerts:
+    enabled: false
+  health_check:
+    enabled: true
+    interval_minutes: 5
+  metrics:
+    collection_interval: 60
+    enabled: true

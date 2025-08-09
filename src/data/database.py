@@ -281,11 +281,17 @@ class TradingDatabase:
             result = cursor.fetchone()
             if result and result[0]:
                 return {
+                    'earliest_timestamp': datetime.fromtimestamp(result[0] / 1000).strftime('%Y-%m-%d %H:%M:%S'),
+                    'latest_timestamp': datetime.fromtimestamp(result[1] / 1000).strftime('%Y-%m-%d %H:%M:%S'),
                     'min_datetime': datetime.fromtimestamp(result[0] / 1000),
                     'max_datetime': datetime.fromtimestamp(result[1] / 1000),
                     'total_records': result[2]
                 }
-            return {'total_records': 0}
+            return {
+                'earliest_timestamp': None,
+                'latest_timestamp': None,
+                'total_records': 0
+            }
     
     def cleanup_old_data(self, symbol: str, interval: str, keep_days: int = 365):
         """

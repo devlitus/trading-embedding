@@ -7,6 +7,20 @@ import logging
 from datetime import datetime, timedelta
 import time
 
+# Importar gestor de configuración
+try:
+    from ..config import is_cache_disabled, is_development_mode
+except ImportError:
+    try:
+        # Intentar import absoluto
+        from src.config import is_cache_disabled, is_development_mode
+    except ImportError:
+        # Fallback si no se puede importar el gestor de configuración
+        def is_cache_disabled():
+            return False
+        def is_development_mode():
+            return False
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -29,10 +43,20 @@ class DataManager:
         """
         self.binance_client = BinanceClient()
         self.database = TradingDatabase(db_path)
-        self.cache = TradingCache(use_redis=False, default_ttl=cache_ttl) if use_cache else None
-        self.use_cache = use_cache
         
-        logger.info("DataManager inicializado correctamente")
+        # Verificar configuración de desarrollo para caché
+        cache_disabled_by_config = is_cache_disabled()
+        effective_use_cache = use_cache and not cache_disabled_by_config
+        
+        self.cache = TradingCache(use_redis=False, default_ttl=cache_ttl) if effective_use_cache else None
+        self.use_cache = effective_use_cache
+        
+        if cache_disabled_by_config:
+            logger.info("DataManager inicializado con caché deshabilitada por configuración de desarrollo")
+        else:
+            logger.info("DataManager inicializado correctamente")
+            
+        logger.info(f"Modo desarrollo: {is_development_mode()}, Caché habilitada: {self.use_cache}")
     
     def fetch_and_store_data(self, 
                             symbol: str, 
@@ -240,51 +264,68 @@ class DataManager:
         """
         Obtiene estadísticas de la base de datos
         """
-        symbols = self.database.get_available_symbols()
-        
-        stats = {
-            'total_symbols': len(symbols),
-            'symbols': symbols,
-            'symbol_details': {}
-        }
-        
-        # Detalles de todos los símbolos
-        for symbol in symbols:
-            try:
-                range_info = self.database.get_data_range(symbol, '1h')
-                # Obtener intervalos disponibles para este símbolo
-                intervals = self.database.get_available_intervals(symbol)
-                
-                # Contar registros totales
-                total_records = 0
-                for interval in intervals:
-                    # Usar context manager para la conexión
-                    import sqlite3
-                    with sqlite3.connect(self.database.db_path) as conn:
-                        cursor = conn.cursor()
-                        cursor.execute(
-                            "SELECT COUNT(*) FROM ohlc_data WHERE symbol = ? AND interval_type = ?",
-                            (symbol.upper(), interval)
-                        )
-                        result = cursor.fetchone()
-                        total_records += result[0] if result else 0
-                
-                stats['symbol_details'][symbol] = {
-                    'total_records': total_records,
-                    'intervals': intervals,
-                    'earliest_timestamp': range_info.get('earliest_timestamp'),
-                    'latest_timestamp': range_info.get('latest_timestamp')
-                }
-            except Exception as e:
-                logger.warning(f"Error obteniendo stats para {symbol}: {e}")
-                stats['symbol_details'][symbol] = {
-                    'total_records': 0,
-                    'intervals': [],
-                    'earliest_timestamp': None,
-                    'latest_timestamp': None
-                }
-        
-        return stats
+        try:
+            symbols = self.database.get_available_symbols()
+            
+            # Crear lista de símbolos con información básica
+            symbols_info = []
+            total_records = 0
+            latest_timestamp = None
+            
+            for symbol in symbols:
+                try:
+                    range_info = self.database.get_data_range(symbol, '1h')
+                    # Obtener intervalos disponibles para este símbolo
+                    intervals = self.database.get_available_intervals(symbol)
+                    
+                    # Contar registros totales para este símbolo
+                    symbol_records = 0
+                    for interval in intervals:
+                        # Usar context manager para la conexión
+                        import sqlite3
+                        with sqlite3.connect(self.database.db_path) as conn:
+                            cursor = conn.cursor()
+                            cursor.execute(
+                                "SELECT COUNT(*) FROM ohlc_data WHERE symbol = ? AND interval_type = ?",
+                                (symbol.upper(), interval)
+                            )
+                            result = cursor.fetchone()
+                            symbol_records += result[0] if result else 0
+                    
+                    total_records += symbol_records
+                    
+                    # Agregar información del símbolo
+                    symbols_info.append({
+                        'symbol': symbol,
+                        'count': symbol_records
+                    })
+                    
+                    # Actualizar timestamp más reciente
+                    if range_info.get('latest_timestamp') and (not latest_timestamp or range_info['latest_timestamp'] > latest_timestamp):
+                        latest_timestamp = range_info['latest_timestamp']
+                        
+                except Exception as e:
+                    logger.warning(f"Error obteniendo stats para {symbol}: {e}")
+                    symbols_info.append({
+                        'symbol': symbol,
+                        'count': 0
+                    })
+            
+            return {
+                'total_symbols': len(symbols),
+                'total_records': total_records,
+                'symbols': symbols_info,
+                'latest_timestamp': latest_timestamp
+            }
+            
+        except Exception as e:
+            logger.error(f"Error obteniendo estadísticas de BD: {e}")
+            return {
+                'total_symbols': 0,
+                'total_records': 0,
+                'symbols': [],
+                'latest_timestamp': None
+            }
     
     def get_cache_stats(self) -> Dict[str, Any]:
         """

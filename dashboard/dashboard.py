@@ -5,28 +5,33 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
+import numpy as np
 from datetime import datetime, timedelta
 import time
 import json
+import sqlite3
 
 # Configurar rutas del proyecto
-project_root = Path(r"c:\dev\trading_embbeding")
+project_root = Path(r"c:\dev\trading_embedding")
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / 'src'))
 sys.path.insert(0, str(project_root / 'src' / 'data'))
 sys.path.insert(0, str(project_root / 'src' / 'analysis'))
 sys.path.insert(0, str(project_root / 'dashboard' / 'pages'))
 
-# Importar DataManager y Sistema de Verificación
+# Importar DataManager, DataStrategy y Sistema de Verificación
 try:
     from pages.common import DataManager
     sys.path.insert(0, str(project_root))
     from verification_system import Phase2VerificationSystem
+    from src.data.data_strategy import DataStrategy
+    from src.data.data_access_layer import DataAccessLayer
 except ImportError as e:
-    st.error(f"Error importando DataManager o Sistema de Verificación: {e}")
+    st.error(f"Error importando DataManager, DataStrategy o Sistema de Verificación: {e}")
     st.stop()
 
-# Importar páginas
+# Importar páginas del dashboard
 try:
     from pages.home import show_home_page
     from pages.phase1_data import show_phase1_data_page
@@ -35,6 +40,7 @@ try:
     from pages.technical_analysis import show_technical_analysis_page
     from pages.realtime_monitoring import show_realtime_monitoring_page
     from pages.reports import show_reports_page
+    from pages.hybrid_data_strategy import show_hybrid_data_strategy_page
 except ImportError as e:
     st.error(f"Error importando páginas: {e}")
     st.stop()
@@ -50,16 +56,27 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Inicializar DataManager
+# Inicializar DataManager y Estrategia Híbrida
 @st.cache_resource
 def get_data_manager():
     return DataManager()
+
+@st.cache_resource
+def get_data_strategy():
+    """Inicializa la estrategia híbrida de datos."""
+    try:
+        data_access = DataAccessLayer()
+        return DataStrategy(data_access)
+    except Exception as e:
+        st.error(f"Error inicializando estrategia de datos: {e}")
+        return None
 
 @st.cache_resource
 def get_verification_system():
     return Phase2VerificationSystem()
 
 data_manager = get_data_manager()
+data_strategy = get_data_strategy()
 verification_system = get_verification_system()
 
 # CSS personalizado
@@ -105,6 +122,7 @@ page_options = {
     "✅ Verificación Sistema": "system_verification",
     "📈 Análisis Técnico": "technical_analysis",
     "🎯 Monitoreo en Tiempo Real": "realtime_monitoring",
+    "🔄 Estrategia Híbrida de Datos": "hybrid_data_strategy",
     "📋 Reportes": "reports"
 }
 
@@ -134,6 +152,8 @@ elif page_key == "technical_analysis":
     show_technical_analysis_page(data_manager)
 elif page_key == "realtime_monitoring":
     show_realtime_monitoring_page(data_manager)
+elif page_key == "hybrid_data_strategy":
+    show_hybrid_data_strategy_page()
 elif page_key == "reports":
     show_reports_page(data_manager)
 
