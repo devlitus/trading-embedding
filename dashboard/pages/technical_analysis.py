@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from .common import get_plotly_config, CUSTOM_CSS, analyze_symbol
+from pages.common import get_plotly_config, CUSTOM_CSS, analyze_symbol
 
 def show_technical_analysis_page(data_manager):
     """Mostrar la página de Análisis Técnico Avanzado"""
@@ -32,8 +32,8 @@ def show_technical_analysis_page(data_manager):
     with col2:
         interval = st.selectbox(
             "Intervalo",
-            ["1m", "5m", "15m", "1h", "4h", "1d"],
-            index=3,
+            ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
+            index=5,
             key="tech_analysis_interval"
         )
     

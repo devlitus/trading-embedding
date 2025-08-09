@@ -5,7 +5,7 @@ Página de Fase 2 - Análisis Técnico
 
 import streamlit as st
 import plotly.graph_objects as go
-from .common import get_plotly_config, CUSTOM_CSS, analyze_symbol
+from pages.common import get_plotly_config, CUSTOM_CSS, analyze_symbol
 
 def show_phase2_analysis_page(data_manager):
     """Mostrar la página de Fase 2 - Análisis Técnico"""
@@ -33,8 +33,8 @@ def show_phase2_analysis_page(data_manager):
     with col2:
         interval = st.selectbox(
             "Intervalo de Tiempo",
-            ["1m", "5m", "15m", "1h", "4h", "1d"],
-            index=3,
+            ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
+            index=5,
             key="analysis_interval"
         )
     
