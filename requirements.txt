@@ -1,0 +1,54 @@
+# Dependencias del proyecto
+
+# === FASE 1: ADQUISICIÓN DE DATOS ===
+# API de Binance
+python-binance==1.0.19
+requests==2.31.0
+
+# Base de datos
+# sqlite3 está incluido en Python estándar
+pandas==2.1.4
+numpy==1.24.3
+
+# Caché
+redis==5.0.1  # Opcional, para caché distribuido
+
+# Utilidades
+python-dateutil==2.8.2
+pytz==2023.3
+loguru==0.7.2  # Logging avanzado (alternativa a logging estándar)
+psutil==5.9.6  # Métricas del sistema
+
+# Configuración
+pyyaml==6.0.1
+python-dotenv==1.0.0
+
+# Testing (para desarrollo)
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Dashboard (Fase 1)
+streamlit>=1.28.0
+plotly>=5.17.0
+
+# === FASES FUTURAS ===
+# Machine Learning (Fase 4)
+# tensorflow==2.13.0
+# scikit-learn==1.3.2
+# sentence-transformers==2.2.2
+
+# Análisis técnico
+ta==0.11.0
+scipy==1.16.1
+# talib-binary==0.4.26  # Alternativa si se necesita TA-Lib nativo
+
+# API y Interface (Fase 5)
+# fastapi==0.104.1
+# uvicorn==0.24.0
+# streamlit==1.28.1
+# plotly==5.17.0
+
+# Etiquetado (Fase 3)
+# sqlalchemy==2.0.23
+# pydantic==2.5.0
