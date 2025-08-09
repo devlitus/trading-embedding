@@ -203,9 +203,9 @@ def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back
                 end_time = datetime.now()
                 start_time = end_time - timedelta(days=days_back)
                 
-                df = data_manager.get_ohlc_data(
+                df = data_manager.get_data(
                     symbol=symbol,
-                    timeframe=timeframe,
+                    interval=timeframe,
                     start_time=start_time,
                     end_time=end_time
                 )
@@ -224,7 +224,7 @@ def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back
                 status_text.text("🔍 Detectando patrones Wyckoff...")
                 progress_bar.progress(60)
                 
-                signals = heuristic_engine.analyze_data(df)
+                signals = heuristic_engine.analyze_pattern(df)
                 
                 # Paso 4: Filtrar resultados
                 status_text.text("🎯 Filtrando y clasificando resultados...")
@@ -1027,9 +1027,9 @@ def show_automatic_detection(data_manager, symbol, timeframe, days_back, min_con
                 end_time = datetime.now()
                 start_time = end_time - timedelta(days=days_back)
                 
-                df = data_manager.get_ohlc_data(
+                df = data_manager.get_data(
                     symbol=symbol,
-                    timeframe=timeframe,
+                    interval=timeframe,
                     start_time=start_time,
                     end_time=end_time
                 )
@@ -1039,7 +1039,7 @@ def show_automatic_detection(data_manager, symbol, timeframe, days_back, min_con
                     return
                 
                 # Detectar patrones
-                signals = heuristic_engine.analyze_data(df)
+                signals = heuristic_engine.analyze_pattern(df)
                 
                 # Filtrar por confianza
                 filtered_signals = [
@@ -1137,9 +1137,9 @@ def show_scoring_system(data_manager, symbol, timeframe, days_back, min_confiden
                 end_time = datetime.now()
                 start_time = end_time - timedelta(days=days_back)
                 
-                df = data_manager.get_ohlc_data(
+                df = data_manager.get_data(
                     symbol=symbol,
-                    timeframe=timeframe,
+                    interval=timeframe,
                     start_time=start_time,
                     end_time=end_time
                 )
@@ -1149,7 +1149,7 @@ def show_scoring_system(data_manager, symbol, timeframe, days_back, min_confiden
                     return
                 
                 # Detectar señales
-                signals = heuristic_engine.analyze_data(df)
+                signals = heuristic_engine.analyze_pattern(df)
                 filtered_signals = [s for s in signals if s.confidence >= min_confidence]
                 
                 if not filtered_signals:
@@ -1413,9 +1413,9 @@ def show_integrated_workflow(data_manager, symbol, timeframe, days_back):
             end_time = datetime.now()
             start_time = end_time - timedelta(days=days_back)
             
-            df = data_manager.get_ohlc_data(
+            df = data_manager.get_data(
                 symbol=symbol,
-                timeframe=timeframe,
+                interval=timeframe,
                 start_time=start_time,
                 end_time=end_time
             )
@@ -1430,7 +1430,7 @@ def show_integrated_workflow(data_manager, symbol, timeframe, days_back):
             status_text.text("🔍 Paso 3/5: Detectando y puntuando patrones...")
             progress_bar.progress(0.4)
             
-            signals = heuristic_engine.analyze_data(df)
+            signals = heuristic_engine.analyze_pattern(df)
             filtered_signals = [s for s in signals if s.confidence >= min_confidence_flow][:max_samples]
             
             if not filtered_signals:

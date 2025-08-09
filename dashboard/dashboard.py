@@ -36,6 +36,7 @@ try:
     from pages.home import show_home_page
     from pages.phase1_data import show_phase1_data_page
     from pages.phase2_analysis import show_phase2_analysis_page
+    from pages.phase3_labeling import show_phase3_labeling_page
     from pages.system_verification import show_system_verification_page
     from pages.technical_analysis import show_technical_analysis_page
     from pages.realtime_monitoring import show_realtime_monitoring_page
@@ -119,6 +120,7 @@ page_options = {
     "🏠 Inicio": "home",
     "📊 Fase 1 - Datos": "phase1_data",
     "🔍 Fase 2 - Análisis": "phase2_analysis",
+    "🏷️ Fase 3 - Etiquetado": "phase3_labeling",
     "✅ Verificación Sistema": "system_verification",
     "📈 Análisis Técnico": "technical_analysis",
     "🎯 Monitoreo en Tiempo Real": "realtime_monitoring",
@@ -146,6 +148,8 @@ elif page_key == "phase1_data":
     show_phase1_data_page(data_manager)
 elif page_key == "phase2_analysis":
     show_phase2_analysis_page(data_manager)
+elif page_key == "phase3_labeling":
+    show_phase3_labeling_page(data_manager)
 elif page_key == "system_verification":
     show_system_verification_page(data_manager, verification_system)
 elif page_key == "technical_analysis":
@@ -163,7 +167,7 @@ st.markdown("""
 <div style='text-align: center; color: #666; padding: 20px;'>
     <p>🚀 <strong>Trading Dashboard</strong> - Sistema Integrado de Análisis de Mercados</p>
     <p>Desarrollado con ❤️ usando Streamlit, Plotly y Python</p>
-    <p>Fase 1: Adquisición de Datos | Fase 2: Análisis Técnico | Sistema de Verificación</p>
+    <p>Fase 1: Adquisición de Datos | Fase 2: Análisis Técnico | Fase 3: Etiquetado | Sistema de Verificación</p>
 </div>
 """, unsafe_allow_html=True)
 
