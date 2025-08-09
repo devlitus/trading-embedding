@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
-from .common import get_plotly_config, CUSTOM_CSS
+from pages.common import get_plotly_config, CUSTOM_CSS
 
 def show_phase1_data_page(data_manager):
     """Mostrar la página de Fase 1 - Adquisición de Datos"""
@@ -55,8 +55,8 @@ def show_phase1_data_page(data_manager):
     with control_col2:
         interval = st.selectbox(
             "Intervalo",
-            ["1m", "5m", "15m", "1h", "4h", "1d"],
-            index=3,
+            ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
+            index=5,
             key="phase1_interval"
         )
     

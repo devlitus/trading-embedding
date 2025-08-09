@@ -36,7 +36,7 @@ def show_hybrid_data_strategy_page():
     
     interval = st.sidebar.selectbox(
         "Intervalo",
-        ["1h", "4h", "1d"],
+        ["1h", "4h", "1d", "1w"],
         index=0
     )
     
