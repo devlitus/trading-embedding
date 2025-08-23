@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 from datetime import datetime, timedelta
 import logging
-from .data_access_layer import DataAccessLayer
+from src.data.data_access_layer import DataAccessLayer
 
 logger = logging.getLogger(__name__)
 

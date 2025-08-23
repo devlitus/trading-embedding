@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import time
-from .common import get_plotly_config, CUSTOM_CSS
+from dashboard.pages.common import get_plotly_config, CUSTOM_CSS
 
 def show_system_verification_page(data_manager, verification_system):
     """Mostrar la página de Verificación del Sistema"""
