@@ -15,7 +15,7 @@ import hashlib
 
 # Importar gestor de configuración
 try:
-    from ..config import is_cache_disabled, is_development_mode, get_config
+    from src.config import is_cache_disabled, is_development_mode, get_config
 except ImportError:
     # Fallback si no se puede importar el gestor de configuración
     def is_cache_disabled():

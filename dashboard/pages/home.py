@@ -4,7 +4,7 @@ Página de inicio del dashboard
 """
 
 import streamlit as st
-from .common import show_system_metrics, CUSTOM_CSS
+from dashboard.pages.common import show_system_metrics, CUSTOM_CSS
 
 def show_home_page(data_manager):
     """Mostrar la página de inicio"""

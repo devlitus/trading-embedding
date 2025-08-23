@@ -1,6 +1,6 @@
-from binance_client import BinanceClient
-from database import TradingDatabase
-from cache import TradingCache
+from src.data.binance_client import BinanceClient
+from src.data.database import TradingDatabase
+from src.data.cache import TradingCache
 import pandas as pd
 from typing import List, Dict, Any, Optional
 import logging
@@ -9,17 +9,13 @@ import time
 
 # Importar gestor de configuración
 try:
-    from ..config import is_cache_disabled, is_development_mode
+    from src.config import is_cache_disabled, is_development_mode
 except ImportError:
-    try:
-        # Intentar import absoluto
-        from src.config import is_cache_disabled, is_development_mode
-    except ImportError:
-        # Fallback si no se puede importar el gestor de configuración
-        def is_cache_disabled():
-            return False
-        def is_development_mode():
-            return False
+    # Fallback si no se puede importar el gestor de configuración
+    def is_cache_disabled():
+        return False
+    def is_development_mode():
+        return False
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
