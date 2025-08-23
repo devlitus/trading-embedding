@@ -299,18 +299,30 @@ def show_phase2_analysis_page(data_manager):
                                 # Obtener los datos del patrón
                                 pattern_data = df.iloc[start_idx:end_idx+1]
                                 
-                                # Color según confianza
+                                # Colores altamente contrastantes y accesibles para daltonismo
                                 if pattern.confidence > 0.7:
-                                    color = 'rgba(0, 255, 0, 0.3)'  # Verde transparente
-                                    border_color = 'green'
+                                    color = 'rgba(0, 0, 139, 0.3)'  # Azul marino transparente (alta confianza)
+                                    border_color = '#00008B'  # Azul marino sólido
+                                    text_color = '#FFFFFF'  # Texto blanco
+                                    bg_color = 'rgba(0, 0, 139, 0.9)'  # Fondo azul marino semi-opaco
+                                    dash_pattern = 'solid'
+                                    symbol = '🔵'  # Círculo azul
                                 elif pattern.confidence > 0.5:
-                                    color = 'rgba(255, 165, 0, 0.3)'  # Naranja transparente
-                                    border_color = 'orange'
+                                    color = 'rgba(255, 140, 0, 0.3)'  # Naranja oscuro transparente (media confianza)
+                                    border_color = '#FF8C00'  # Naranja oscuro sólido
+                                    text_color = '#000000'  # Texto negro
+                                    bg_color = 'rgba(255, 255, 255, 0.95)'  # Fondo blanco
+                                    dash_pattern = 'dash'
+                                    symbol = '🔶'  # Rombo naranja
                                 else:
-                                    color = 'rgba(0, 0, 255, 0.3)'  # Azul transparente
-                                    border_color = 'blue'
+                                    color = 'rgba(220, 20, 60, 0.3)'  # Carmesí transparente (baja confianza)
+                                    border_color = '#DC143C'  # Carmesí sólido
+                                    text_color = '#FFFFFF'  # Texto blanco
+                                    bg_color = 'rgba(220, 20, 60, 0.9)'  # Fondo carmesí semi-opaco
+                                    dash_pattern = 'dot'
+                                    symbol = '🔴'  # Círculo rojo
                                 
-                                # Añadir área sombreada para el patrón
+                                # Añadir área sombreada para el patrón con máxima accesibilidad
                                 fig.add_shape(
                                     type="rect",
                                     x0=pattern_data.index[0],
@@ -318,26 +330,29 @@ def show_phase2_analysis_page(data_manager):
                                     x1=pattern_data.index[-1],
                                     y1=pattern_data['high'].max() * 1.001,  # Ligeramente por encima del máximo
                                     fillcolor=color,
-                                    line=dict(color=border_color, width=2),
-                                    opacity=0.5
+                                    line=dict(color=border_color, width=4, dash=dash_pattern),
+                                    opacity=0.7
                                 )
                                 
-                                # Añadir anotación del patrón con mejor contraste
+                                # Añadir anotación del patrón con máxima accesibilidad y contraste
                                 fig.add_annotation(
                                     x=pattern_data.index[len(pattern_data)//2],  # Punto medio del patrón
-                                    y=pattern_data['high'].max() * 1.005,
-                                    text=f"<b>{pattern.pattern_type}</b><br><b>({pattern.confidence:.1%})</b>",
+                                    y=pattern_data['high'].max() * 1.008,
+                                    text=f"<b>{symbol} {pattern.pattern_type}</b><br><b>Confianza: {pattern.confidence:.1%}</b>",
                                     showarrow=True,
-                                    arrowhead=2,
+                                    arrowhead=3,
+                                    arrowsize=1.5,
                                     arrowcolor=border_color,
-                                    bgcolor="rgba(0, 0, 0, 0.8)",  # Fondo negro semi-transparente
+                                    arrowwidth=3,
+                                    bgcolor=bg_color,
                                     bordercolor=border_color,
-                                    borderwidth=2,
+                                    borderwidth=4,
                                     font=dict(
-                                        size=12,
-                                        color="white",  # Texto blanco para contraste
-                                        family="Arial Black"  # Fuente más gruesa
-                                    )
+                                        size=14,
+                                        color=text_color,
+                                        family="Arial Black"
+                                    ),
+                                    opacity=1.0
                                 )
                     
                     fig.update_layout(
