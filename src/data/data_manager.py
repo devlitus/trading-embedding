@@ -341,6 +341,56 @@ class DataManager:
         """
         return self.database.cleanup_old_data(symbol, interval, keep_days)
     
+    def truncate_database(self) -> Dict[str, Any]:
+        """
+        Trunca completamente la base de datos eliminando todos los datos OHLC
+        
+        Returns:
+            Diccionario con estadísticas de la operación
+        """
+        try:
+            import sqlite3
+            
+            with sqlite3.connect(self.database.db_path) as conn:
+                cursor = conn.cursor()
+                
+                # Contar registros antes del truncate
+                cursor.execute("SELECT COUNT(*) FROM ohlc_data")
+                records_before = cursor.fetchone()[0]
+                
+                # Truncar tabla ohlc_data
+                cursor.execute("DELETE FROM ohlc_data")
+                
+                # Limpiar caché si está habilitado
+                if self.use_cache:
+                    try:
+                        self.cache.clear_all()
+                        cache_cleared = True
+                    except Exception as e:
+                        logger.warning(f"Error limpiando caché: {e}")
+                        cache_cleared = False
+                else:
+                    cache_cleared = False
+                
+                conn.commit()
+                
+                logger.info(f"Base de datos truncada: {records_before} registros eliminados")
+                
+                return {
+                    'success': True,
+                    'records_deleted': records_before,
+                    'cache_cleared': cache_cleared,
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+        except Exception as e:
+            logger.error(f"Error truncando base de datos: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
+    
     def health_check(self) -> Dict[str, Any]:
         """
         Verifica el estado de todos los componentes

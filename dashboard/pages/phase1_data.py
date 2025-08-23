@@ -56,7 +56,7 @@ def show_phase1_data_page(data_manager):
         interval = st.selectbox(
             "Intervalo",
             ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
-            index=5,
+            index=3,
             key="phase1_interval"
         )
     
@@ -235,8 +235,29 @@ def show_phase1_data_page(data_manager):
                 # Panel de métricas del sistema en una sola fila
                 st.markdown(f"**Base de Datos:** {db_stats.get('total_symbols', 0)} símbolos, {db_stats.get('total_records', 0):,} registros | **Caché:** {cache_stats.get('total_keys', 0)} elementos, {cache_stats.get('memory_usage', 0)} MB | **Actualizado:** {datetime.now().strftime('%H:%M:%S')}")
                 
-                if st.button("🔄 Refrescar Estado", key="refresh_system_status"):
-                    st.rerun()
+                # Botones para refrescar estado y truncar base de datos
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("🔄 Refrescar Estado", key="refresh_system_status"):
+                        st.rerun()
+                
+                with col2:
+                    if st.button("🗑️ Truncar Base de Datos", key="truncate_database", type="secondary"):
+                        with st.spinner("Truncando base de datos..."):
+                            try:
+                                result = data_manager.truncate_database()
+                                if result['success']:
+                                    st.success(f"✅ Base de datos truncada exitosamente. Se eliminaron {result['records_deleted']} registros.")
+                                    if result['cache_cleared']:
+                                        st.info("🧹 Caché limpiado también.")
+                                else:
+                                    st.error("❌ Error al truncar la base de datos.")
+                            except Exception as e:
+                                st.error(f"❌ Error inesperado: {str(e)}")
+                            
+                            # Refrescar la página después del truncate
+                            st.rerun()
                 
                 # Tabla compacta de símbolos disponibles
                 if db_stats.get('symbol_details'):

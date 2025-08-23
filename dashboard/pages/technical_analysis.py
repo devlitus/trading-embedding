@@ -33,7 +33,7 @@ def show_technical_analysis_page(data_manager):
         interval = st.selectbox(
             "Intervalo",
             ["1m", "5m", "15m", "1h", "4h", "1d", "1w"],
-            index=5,
+            index=3,
             key="tech_analysis_interval"
         )
     

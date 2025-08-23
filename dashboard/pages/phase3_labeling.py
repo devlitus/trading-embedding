@@ -104,7 +104,7 @@ def show_phase3_labeling_page(data_manager):
         timeframe = st.selectbox(
             "⏰ Temporalidad",
             ["1h", "4h", "1d", "1w"],
-            index=2,
+            index=0,
             help="Intervalo de tiempo de las velas"
         )
     
