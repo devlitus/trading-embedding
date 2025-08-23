@@ -6,7 +6,7 @@ Página de Fase 1 - Adquisición de Datos
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, date
 from pages.common import get_plotly_config, CUSTOM_CSS
 
 def show_phase1_data_page(data_manager):
@@ -61,7 +61,10 @@ def show_phase1_data_page(data_manager):
         )
     
     with control_col3:
-        days_back = st.number_input("Días", min_value=1, max_value=365, value=30, key="phase1_days")
+        # Siempre mostrar solo datos del día actual
+        st.markdown("**📅 Período**")
+        st.info(f"Solo día actual: {date.today().strftime('%Y-%m-%d')}")
+        days_back = 1  # Forzar a 1 día
     
     st.markdown("---")  # Separador visual entre filas
     
@@ -72,11 +75,11 @@ def show_phase1_data_page(data_manager):
     with status_col1:
         st.markdown("**🔄 Estado de Datos**")
         try:
-            # Intentar obtener datos automáticamente
+            # Obtener datos solo del día actual
             result = data_manager.fetch_and_store_data(
                 symbol=symbol,
                 interval=interval,
-                days_back=days_back
+                days_back=1  # Solo día actual
             )
             
             if 'error' in result:
@@ -124,12 +127,26 @@ def show_phase1_data_page(data_manager):
             st.error("❌ Error")
             st.caption(f"Error: {str(e)[:30]}...")
     
-    # Área principal - Visualización automática de datos a pantalla completa
+    # Área principal - Visualización automática de datos del día actual
     try:
-        df = data_manager.get_data(symbol, interval, limit=200)
+        # Obtener datos y filtrar solo los del día actual
+        df = data_manager.get_data(symbol, interval, limit=500)
         if not df.empty:
-            # Gráfico principal a pantalla completa
-            st.markdown(f"### 📈 {symbol} - {interval} (Últimos {len(df)} registros)")
+            # Filtrar solo datos del día actual
+            today = date.today()
+            df_today = df[df.index.date == today]
+            
+            # Si no hay datos de hoy, mostrar los más recientes disponibles
+            if df_today.empty:
+                df_today = df.tail(50)  # Últimos 50 registros como fallback
+                st.warning(f"⚠️ No hay datos específicos de hoy ({today}). Mostrando datos más recientes.")
+            else:
+                st.success(f"✅ Mostrando {len(df_today)} registros del día actual ({today})")
+            
+            df = df_today  # Usar solo datos filtrados
+            
+            # Gráfico principal del día actual
+            st.markdown(f"### 📈 {symbol} - {interval} - Día Actual ({len(df)} registros)")
             
             # Crear gráfico de velas optimizado para pantalla completa
             fig = go.Figure()

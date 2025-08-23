@@ -116,19 +116,146 @@ def show_phase2_analysis_page(data_manager):
                     if analysis_result.patterns:
                         st.subheader("🎯 Patrones Detectados")
                         
+                        # Diccionario con información detallada de cada patrón
+                        pattern_info = {
+                            "triangle": {
+                                "name": "Triángulo",
+                                "description": "Patrón de consolidación donde el precio se mueve entre líneas de tendencia convergentes.",
+                                "criteria": [
+                                    "Mínimo 4 puntos de contacto (2 máximos y 2 mínimos)",
+                                    "Líneas de tendencia convergentes",
+                                    "Volumen decreciente durante la formación",
+                                    "Ruptura con incremento de volumen"
+                                ],
+                                "theory": "Basado en la teoría de Dow y análisis técnico clásico. Representa un período de indecisión del mercado antes de una ruptura direccional.",
+                                "reliability": "Alta (70-80% de efectividad)",
+                                "timeframe": "Funciona mejor en marcos temporales de 1h o superiores"
+                            },
+                            "rectangle": {
+                                "name": "Rectángulo",
+                                "description": "Patrón de consolidación horizontal donde el precio oscila entre niveles de soporte y resistencia paralelos.",
+                                "criteria": [
+                                    "Mínimo 4 puntos de contacto en niveles horizontales",
+                                    "Soporte y resistencia claramente definidos",
+                                    "Rango de precio relativamente estable",
+                                    "Volumen variable durante la formación"
+                                ],
+                                "theory": "Representa equilibrio entre compradores y vendedores. Basado en conceptos de soporte/resistencia de la teoría técnica clásica.",
+                                "reliability": "Media-Alta (60-75% de efectividad)",
+                                "timeframe": "Efectivo en todos los marcos temporales"
+                            },
+                            "channel": {
+                                "name": "Canal",
+                                "description": "Patrón donde el precio se mueve entre dos líneas de tendencia paralelas (canal alcista, bajista o lateral).",
+                                "criteria": [
+                                    "Dos líneas de tendencia paralelas",
+                                    "Mínimo 3 puntos de contacto por línea",
+                                    "Precio respeta los límites del canal",
+                                    "Tendencia direccional clara"
+                                ],
+                                "theory": "Basado en la teoría de tendencias de Charles Dow. Los canales representan movimientos ordenados del mercado.",
+                                "reliability": "Alta (75-85% de efectividad)",
+                                "timeframe": "Más confiable en marcos temporales largos (4h+)"
+                            },
+                            "head_and_shoulders": {
+                                "name": "Cabeza y Hombros",
+                                "description": "Patrón de reversión que indica el final de una tendencia alcista, formado por tres picos con el central más alto.",
+                                "criteria": [
+                                    "Tres picos: hombro izquierdo, cabeza, hombro derecho",
+                                    "La cabeza debe ser el pico más alto",
+                                    "Línea de cuello conecta los mínimos",
+                                    "Volumen decreciente en la formación"
+                                ],
+                                "theory": "Patrón clásico de reversión identificado por Richard Schabacker y popularizado por Edwards & Magee.",
+                                "reliability": "Muy Alta (80-90% de efectividad)",
+                                "timeframe": "Más efectivo en marcos temporales diarios o semanales"
+                            },
+                            "double_top": {
+                                "name": "Doble Techo",
+                                "description": "Patrón de reversión bajista formado por dos picos de altura similar separados por un valle.",
+                                "criteria": [
+                                    "Dos picos de altura similar (±3%)",
+                                    "Valle intermedio claramente definido",
+                                    "Ruptura del soporte del valle",
+                                    "Volumen confirmatorio en la ruptura"
+                                ],
+                                "theory": "Indica agotamiento de la presión compradora. Concepto desarrollado en el análisis técnico clásico.",
+                                "reliability": "Alta (70-80% de efectividad)",
+                                "timeframe": "Funciona en todos los marcos temporales"
+                            },
+                            "double_bottom": {
+                                "name": "Doble Suelo",
+                                "description": "Patrón de reversión alcista formado por dos mínimos de altura similar separados por un pico.",
+                                "criteria": [
+                                    "Dos mínimos de altura similar (±3%)",
+                                    "Pico intermedio claramente definido",
+                                    "Ruptura de la resistencia del pico",
+                                    "Volumen confirmatorio en la ruptura"
+                                ],
+                                "theory": "Indica agotamiento de la presión vendedora. Patrón complementario al doble techo.",
+                                "reliability": "Alta (70-80% de efectividad)",
+                                "timeframe": "Funciona en todos los marcos temporales"
+                            }
+                        }
+                        
                         for pattern in analysis_result.patterns:
                             pattern_type = pattern.pattern_type
                             confidence = pattern.confidence
                             
+                            # Mostrar el patrón con color según confianza
                             if confidence > 0.7:
                                 st.success(f"🟢 {pattern_type} (Confianza: {confidence:.2f})")
                             elif confidence > 0.5:
                                 st.warning(f"🟡 {pattern_type} (Confianza: {confidence:.2f})")
                             else:
                                 st.info(f"🔵 {pattern_type} (Confianza: {confidence:.2f})")
+                            
+                            # Crear desplegable con información detallada
+                            with st.expander(f"📋 {pattern_type.upper()} - Definición y Criterios de Identificación"):
+                                if pattern_type in pattern_info:
+                                    info = pattern_info[pattern_type]
+                                    
+                                    # Información del patrón detectado (lo más importante primero)
+                                    st.markdown("**🎯 PATRÓN DETECTADO**")
+                                    col1, col2, col3 = st.columns(3)
+                                    with col1:
+                                        st.metric("Confianza", f"{confidence:.1%}")
+                                    with col2:
+                                        st.metric("Inicio", f"Vela {pattern.start_idx}")
+                                    with col3:
+                                        st.metric("Fin", f"Vela {pattern.end_idx}")
+                                    
+                                    st.divider()
+                                    
+                                    # Descripción concisa
+                                    st.markdown("**📖 ¿Qué es este patrón?**")
+                                    st.info(info["description"])
+                                    
+                                    # Criterios de identificación
+                                    st.markdown("**✅ ¿Cómo se identifica?**")
+                                    for i, criterion in enumerate(info["criteria"], 1):
+                                        st.write(f"{i}. {criterion}")
+                                    
+                                    # Información técnica en columnas
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.markdown("**📊 Efectividad**")
+                                        st.success(info["reliability"])
+                                    
+                                    with col2:
+                                        st.markdown("**⏰ Mejor Timeframe**")
+                                        st.info(info["timeframe"])
+                                    
+                                    # Base teórica (menos prominente)
+                                    with st.expander("🎓 Fundamento Teórico"):
+                                        st.write(info["theory"])
+                                    
+                                else:
+                                    st.write("Información detallada no disponible para este patrón.")
+                                    st.write(f"Patrón detectado desde el índice {pattern.start_idx} hasta {pattern.end_idx}")
                     
                     # Gráfico con indicadores
-                    st.subheader("📊 Gráfico con Indicadores")
+                    st.subheader("📊 Gráfico con Indicadores y Patrones")
                     
                     fig = go.Figure()
                     
@@ -160,6 +287,58 @@ def show_phase2_analysis_page(data_manager):
                             name='SMA 50',
                             line=dict(color='red')
                         ))
+                    
+                    # Marcar patrones detectados en el gráfico
+                    if analysis_result.patterns:
+                        for i, pattern in enumerate(analysis_result.patterns):
+                            start_idx = pattern.start_idx
+                            end_idx = pattern.end_idx
+                            
+                            # Asegurar que los índices estén dentro del rango
+                            if start_idx < len(df) and end_idx < len(df) and start_idx >= 0 and end_idx >= 0:
+                                # Obtener los datos del patrón
+                                pattern_data = df.iloc[start_idx:end_idx+1]
+                                
+                                # Color según confianza
+                                if pattern.confidence > 0.7:
+                                    color = 'rgba(0, 255, 0, 0.3)'  # Verde transparente
+                                    border_color = 'green'
+                                elif pattern.confidence > 0.5:
+                                    color = 'rgba(255, 165, 0, 0.3)'  # Naranja transparente
+                                    border_color = 'orange'
+                                else:
+                                    color = 'rgba(0, 0, 255, 0.3)'  # Azul transparente
+                                    border_color = 'blue'
+                                
+                                # Añadir área sombreada para el patrón
+                                fig.add_shape(
+                                    type="rect",
+                                    x0=pattern_data.index[0],
+                                    y0=pattern_data['low'].min() * 0.999,  # Ligeramente por debajo del mínimo
+                                    x1=pattern_data.index[-1],
+                                    y1=pattern_data['high'].max() * 1.001,  # Ligeramente por encima del máximo
+                                    fillcolor=color,
+                                    line=dict(color=border_color, width=2),
+                                    opacity=0.5
+                                )
+                                
+                                # Añadir anotación del patrón con mejor contraste
+                                fig.add_annotation(
+                                    x=pattern_data.index[len(pattern_data)//2],  # Punto medio del patrón
+                                    y=pattern_data['high'].max() * 1.005,
+                                    text=f"<b>{pattern.pattern_type}</b><br><b>({pattern.confidence:.1%})</b>",
+                                    showarrow=True,
+                                    arrowhead=2,
+                                    arrowcolor=border_color,
+                                    bgcolor="rgba(0, 0, 0, 0.8)",  # Fondo negro semi-transparente
+                                    bordercolor=border_color,
+                                    borderwidth=2,
+                                    font=dict(
+                                        size=12,
+                                        color="white",  # Texto blanco para contraste
+                                        family="Arial Black"  # Fuente más gruesa
+                                    )
+                                )
                     
                     fig.update_layout(
                         title=f"{symbol} - Análisis Técnico ({interval})",

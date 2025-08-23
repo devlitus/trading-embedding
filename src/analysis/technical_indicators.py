@@ -49,10 +49,26 @@ class TechnicalIndicators:
     def _add_trend_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """Añade indicadores de tendencia"""
         
-        # Medias móviles simples
-        df['sma_20'] = SMAIndicator(close=df['close'], window=20).sma_indicator()
-        df['sma_50'] = SMAIndicator(close=df['close'], window=50).sma_indicator()
-        df['sma_200'] = SMAIndicator(close=df['close'], window=200).sma_indicator()
+        # Medias móviles simples - ajustadas según datos disponibles
+        data_len = len(df)
+        
+        # SMA básicas siempre disponibles
+        if data_len >= 20:
+            df['sma_20'] = SMAIndicator(close=df['close'], window=20).sma_indicator()
+        else:
+            df['sma_20'] = SMAIndicator(close=df['close'], window=min(10, data_len)).sma_indicator()
+            
+        # SMA 50 solo si hay suficientes datos
+        if data_len >= 50:
+            df['sma_50'] = SMAIndicator(close=df['close'], window=50).sma_indicator()
+        else:
+            df['sma_50'] = SMAIndicator(close=df['close'], window=min(25, data_len)).sma_indicator()
+            
+        # SMA 200 solo si hay suficientes datos
+        if data_len >= 200:
+            df['sma_200'] = SMAIndicator(close=df['close'], window=200).sma_indicator()
+        else:
+            df['sma_200'] = SMAIndicator(close=df['close'], window=min(50, data_len)).sma_indicator()
         
         # Medias móviles exponenciales
         df['ema_12'] = EMAIndicator(close=df['close'], window=12).ema_indicator()
@@ -85,8 +101,11 @@ class TechnicalIndicators:
     def _add_volatility_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         """Añade indicadores de volatilidad"""
         
-        # Bollinger Bands
-        bb = BollingerBands(close=df['close'], window=20, window_dev=2)
+        data_len = len(df)
+        
+        # Bollinger Bands - ajustadas según datos disponibles
+        bb_window = min(20, max(10, data_len // 2))
+        bb = BollingerBands(close=df['close'], window=bb_window, window_dev=2)
         df['bb_upper'] = bb.bollinger_hband()
         df['bb_middle'] = bb.bollinger_mavg()
         df['bb_lower'] = bb.bollinger_lband()
@@ -94,10 +113,12 @@ class TechnicalIndicators:
         df['bb_position'] = (df['close'] - df['bb_lower']) / (df['bb_upper'] - df['bb_lower'])
         
         # Average True Range
-        df['atr'] = AverageTrueRange(high=df['high'], low=df['low'], close=df['close']).average_true_range()
+        atr_window = min(14, max(5, data_len // 3))
+        df['atr'] = AverageTrueRange(high=df['high'], low=df['low'], close=df['close'], window=atr_window).average_true_range()
         
         # Volatilidad histórica (desviación estándar de retornos)
-        df['volatility'] = df['close'].pct_change().rolling(window=20).std() * np.sqrt(252)
+        vol_window = min(20, max(5, data_len // 2))
+        df['volatility'] = df['close'].pct_change().rolling(window=vol_window).std() * np.sqrt(252)
         
         return df
     

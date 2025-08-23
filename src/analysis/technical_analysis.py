@@ -10,9 +10,9 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from datetime import datetime
 
-from technical_indicators import TechnicalIndicators
-from trend_detection import TrendDetector
-from pattern_recognition import PatternRecognizer, PatternResult
+from src.analysis.technical_indicators import TechnicalIndicators
+from src.analysis.trend_detection import TrendDetector
+from src.analysis.pattern_recognition import PatternRecognizer, PatternResult
 
 
 @dataclass
@@ -87,8 +87,8 @@ class TechnicalAnalyzer:
         Returns:
             Resultado completo del análisis técnico
         """
-        if len(df) < 50:
-            raise ValueError("Se necesitan al menos 50 períodos para análisis técnico")
+        if len(df) < 20:
+            raise ValueError("Se necesitan al menos 20 períodos para análisis técnico básico")
         
         # 1. Calcular indicadores técnicos
         indicators_data = self._calculate_all_indicators(df)
