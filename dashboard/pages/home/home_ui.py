@@ -4,7 +4,7 @@ Componentes de interfaz de usuario para la página de inicio
 """
 
 import streamlit as st
-from .common import show_system_metrics, CUSTOM_CSS
+from ..common import show_system_metrics, CUSTOM_CSS
 from .home_config import HomeConfig
 from .home_logic import HomeDataProcessor
 
