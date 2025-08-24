@@ -81,3 +81,7 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+# Python cache directories
+__pycache__/
+*.py[cod]
+*$py.class
