@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import time
-from dashboard.pages.common import get_plotly_config, CUSTOM_CSS, analyze_symbol
+from .common import get_plotly_config, CUSTOM_CSS, analyze_symbol
 
 def show_realtime_monitoring_page(data_manager):
     """Mostrar la página de Monitoreo en Tiempo Real"""

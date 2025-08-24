@@ -42,7 +42,8 @@ class WyckoffHeuristicEngine:
                 pattern='neutral',
                 confidence=0.0,
                 phase='Neutral',
-                description='No hay datos suficientes para análisis'
+                description='No hay datos suficientes para análisis',
+                timestamp=datetime.now().replace(microsecond=0)
             )]
         
         # Análisis básico de volumen y precio
@@ -54,6 +55,14 @@ class WyckoffHeuristicEngine:
         confidence = self._calculate_confidence(data, pattern)
         phase = self.patterns.get(pattern, 'Neutral')
         
+        # Usar el timestamp más reciente del DataFrame
+        latest_timestamp = data.index[-1] if not data.empty else datetime.now()
+        # Asegurar que sea un objeto datetime sin microsegundos
+        if hasattr(latest_timestamp, 'to_pydatetime'):
+            latest_timestamp = latest_timestamp.to_pydatetime().replace(microsecond=0)
+        elif hasattr(latest_timestamp, 'replace'):
+            latest_timestamp = latest_timestamp.replace(microsecond=0)
+        
         # Generar señales como objetos Signal
         signal_descriptions = self._generate_signals(data, pattern)
         signals = []
@@ -63,7 +72,8 @@ class WyckoffHeuristicEngine:
                 pattern=pattern,
                 confidence=confidence,
                 phase=phase,
-                description=description
+                description=description,
+                timestamp=latest_timestamp
             ))
         
         return signals

@@ -11,7 +11,7 @@ from pathlib import Path
 import logging
 
 # Configurar rutas del proyecto
-project_root = Path(r"c:\dev\trading_embedding")
+project_root = Path(r"c:\dev\trading-embedding")
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / 'src'))
 
@@ -131,7 +131,7 @@ def show_phase3_labeling_page(data_manager):
         show_labeling_interface_redesigned(data_manager, symbol, timeframe, days_back)
     
     with tab3:
-        show_dataset_management_redesigned(data_manager)
+        show_dataset_management_redesigned(data_manager, symbol, timeframe)
 
 def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back):
     """Interfaz rediseñada para detección de patrones - Paso 1."""
@@ -293,15 +293,18 @@ def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back
                             'distribution': '🔴',
                             'reaccumulation': '🟡',
                             'redistribution': '🟠'
-                        }.get(signal.phase.value.lower(), '⚪')
+                        }.get(signal.phase.lower(), '⚪')
                         
                         description = getattr(signal, 'description', 'Patrón Wyckoff detectado')
+                        
+                        # Obtener precio del DataFrame
+                        signal_price = get_price_at_timestamp(df, signal.timestamp)
                         
                         signals_data.append({
                             "#": i,
                             "🕐 Fecha y Hora": signal.timestamp.strftime("%d/%m/%Y %H:%M"),
-                            "🎨 Tipo": f"{phase_color} {signal.phase.value.title()}",
-                            "💰 Precio": f"${signal.price:.2f}",
+                            "🎨 Tipo": f"{phase_color} {signal.phase.title()}",
+                            "💰 Precio": f"${signal_price:.2f}",
                             "🎯 Confianza": f"{signal.confidence:.1%}",
                             "📝 Descripción": description[:60] + "..." if len(description) > 60 else description
                         })
@@ -318,7 +321,7 @@ def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back
                         # Distribución por tipos
                         phase_counts = {}
                         for signal in filtered_signals:
-                            phase = signal.phase.value.title()
+                            phase = signal.phase.title()
                             phase_counts[phase] = phase_counts.get(phase, 0) + 1
                         
                         if phase_counts:
@@ -358,6 +361,20 @@ def show_pattern_detection_redesigned(data_manager, symbol, timeframe, days_back
             except Exception as e:
                 st.error(f"❌ Error durante la detección: {str(e)}")
                 st.exception(e)
+
+def get_price_at_timestamp(df, timestamp):
+    """Obtiene el precio de cierre más cercano al timestamp dado."""
+    try:
+        # Buscar el índice más cercano al timestamp
+        if timestamp in df.index:
+            return df.loc[timestamp, 'close']
+        else:
+            # Encontrar el índice más cercano
+            closest_idx = df.index[df.index <= timestamp][-1] if any(df.index <= timestamp) else df.index[0]
+            return df.loc[closest_idx, 'close']
+    except (IndexError, KeyError):
+        # Si no se puede encontrar, usar el último precio disponible
+        return df['close'].iloc[-1] if not df.empty else 0
 
 def create_enhanced_price_chart(df, signals, symbol):
     """Crea un gráfico de precios mejorado con patrones Wyckoff."""
@@ -401,14 +418,19 @@ def create_enhanced_price_chart(df, signals, symbol):
     }
     
     for signal in signals:
-        phase_key = signal.phase.value.lower()
+        if signal.phase is None:
+            continue
+        phase_key = signal.phase.lower()
         color = colors.get(phase_key, '#757575')
         symbol_shape = symbols_map.get(phase_key, 'circle')
+        
+        # Obtener el precio del DataFrame usando el timestamp
+        signal_price = get_price_at_timestamp(df, signal.timestamp)
         
         fig.add_trace(
             go.Scatter(
                 x=[signal.timestamp],
-                y=[signal.price],
+                y=[signal_price],
                 mode='markers',
                 marker=dict(
                     symbol=symbol_shape,
@@ -416,9 +438,9 @@ def create_enhanced_price_chart(df, signals, symbol):
                     color=color,
                     line=dict(width=2, color='white')
                 ),
-                name=f'{signal.phase.value.title()} ({signal.confidence:.1%})',
-                hovertemplate=f'<b>{signal.phase.value.title()}</b><br>' +
-                             f'Precio: ${signal.price:.2f}<br>' +
+                name=f'{signal.phase.title()} ({signal.confidence:.1%})',
+                hovertemplate=f'<b>{signal.phase.title()}</b><br>' +
+                             f'Precio: ${signal_price:.2f}<br>' +
                              f'Confianza: {signal.confidence:.1%}<br>' +
                              f'Fecha: {signal.timestamp.strftime("%d/%m/%Y %H:%M")}<extra></extra>'
             ),
@@ -496,7 +518,7 @@ def show_labeling_interface_redesigned(data_manager, symbol, timeframe, days_bac
     for i, pattern in enumerate(patterns):
         status = st.session_state['labeling_results'].get(i, {}).get('status', '⏳ Pendiente')
         pattern_options.append(
-            f"{i+1}. {pattern.phase.value.title()} - {pattern.timestamp.strftime('%d/%m %H:%M')} - {status}"
+            f"{i+1}. {pattern.phase.title()} - {pattern.timestamp.strftime('%d/%m %H:%M')} - {status}"
         )
     
     selected_idx = st.selectbox(
@@ -515,8 +537,9 @@ def show_labeling_interface_redesigned(data_manager, symbol, timeframe, days_bac
         col_info1, col_info2, col_info3 = st.columns(3)
         
         with col_info1:
-            st.metric("🎨 Tipo Detectado", current_pattern.phase.value.title())
-            st.metric("💰 Precio", f"${current_pattern.price:.2f}")
+            st.metric("🎨 Tipo Detectado", current_pattern.phase.title())
+            signal_price = get_price_at_timestamp(df, current_pattern.timestamp)
+            st.metric("💰 Precio", f"${signal_price:.2f}")
         
         with col_info2:
             st.metric("🎯 Confianza IA", f"{current_pattern.confidence:.1%}")
@@ -560,7 +583,7 @@ def show_labeling_interface_redesigned(data_manager, symbol, timeframe, days_bac
                 focused_patterns = [current_pattern]  # Solo mostrar el patrón actual
                 
                 fig_focused = create_enhanced_price_chart(focused_df, focused_patterns, symbol)
-                fig_focused.update_layout(title=f"Patrón #{selected_idx + 1}: {current_pattern.phase.value.title()}")
+                fig_focused.update_layout(title=f"Patrón #{selected_idx + 1}: {current_pattern.phase.title()}")
                 st.plotly_chart(fig_focused, use_container_width=True)
                 
             except Exception as e:
@@ -587,7 +610,7 @@ def show_labeling_interface_redesigned(data_manager, symbol, timeframe, days_bac
             )
             
             # Tipo de patrón corregido
-            current_type = st.session_state['labeling_results'].get(selected_idx, {}).get('corrected_type', current_pattern.phase.value)
+            current_type = st.session_state['labeling_results'].get(selected_idx, {}).get('corrected_type', current_pattern.phase)
             
             corrected_type = st.selectbox(
                 "🎨 Tipo de patrón correcto:",
@@ -685,7 +708,7 @@ def show_labeling_progress(patterns):
         with col3:
             st.metric("❓ Inciertos", uncertain_count)
 
-def show_dataset_management_redesigned(data_manager):
+def show_dataset_management_redesigned(data_manager, symbol, timeframe):
     """Interfaz rediseñada para gestión de datasets - Paso 3."""
     
     st.markdown("""
@@ -700,6 +723,20 @@ def show_dataset_management_redesigned(data_manager):
         </ul>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Obtener datos para calcular precios
+    try:
+        end_time = datetime.now()
+        start_time = end_time - timedelta(days=30)  # Obtener datos de los últimos 30 días
+        df = data_manager.get_data(
+            symbol=symbol,
+            interval=timeframe,
+            start_time=start_time,
+            end_time=end_time
+        )
+    except Exception as e:
+        st.error(f"❌ Error obteniendo datos: {e}")
+        df = pd.DataFrame()  # DataFrame vacío como fallback
     
     # Verificar si hay etiquetas disponibles
     labeling_results = st.session_state.get('labeling_results', {})
@@ -828,7 +865,7 @@ def show_dataset_management_redesigned(data_manager):
                 'Calidad': v['quality_score'],
                 'Confianza Trader': f"{v['trader_confidence']:.1%}",
                 'Confianza IA': f"{v['original_pattern'].confidence:.1%}",
-                'Precio': f"${v['original_pattern'].price:.2f}",
+                'Precio': f"${get_price_at_timestamp(df, v['original_pattern'].timestamp):.2f}",
                 'Fecha': v['original_pattern'].timestamp.strftime('%d/%m/%Y %H:%M'),
                 'Notas': v['notes'][:50] + '...' if len(v['notes']) > 50 else v['notes']
             })
@@ -896,7 +933,7 @@ def show_dataset_management_redesigned(data_manager):
                         'pattern_id': k,
                         'pattern_type': v['corrected_type'],
                         'timestamp': v['original_pattern'].timestamp.isoformat(),
-                        'price': v['original_pattern'].price,
+                        'price': get_price_at_timestamp(df, v['original_pattern'].timestamp),
                         'ai_confidence': v['original_pattern'].confidence,
                         'trader_confidence': v['trader_confidence'],
                         'quality_score': v['quality_score'],
@@ -921,12 +958,26 @@ def show_dataset_management_redesigned(data_manager):
     
     with col_btn3:
         if st.button("📋 Ver Datasets Existentes", use_container_width=True):
-            show_existing_datasets()
+            show_existing_datasets(data_manager, symbol, timeframe)
 
-def show_existing_datasets():
+def show_existing_datasets(data_manager, symbol, timeframe):
     """Muestra los datasets existentes en el sistema."""
     
     st.markdown("### 📚 Datasets Existentes")
+    
+    # Obtener datos para calcular precios
+    try:
+        end_time = datetime.now()
+        start_time = end_time - timedelta(days=30)  # Obtener datos de los últimos 30 días
+        df = data_manager.get_data(
+            symbol=symbol,
+            interval=timeframe,
+            start_time=start_time,
+            end_time=end_time
+        )
+    except Exception as e:
+        st.error(f"❌ Error obteniendo datos: {e}")
+        df = pd.DataFrame()  # DataFrame vacío como fallback
     
     try:
         dataset_manager = DatasetManager()
@@ -983,10 +1034,13 @@ def show_existing_datasets():
                         
                         export_data = []
                         for sample in samples:
+                            # Obtener precio del DataFrame usando el timestamp
+                            signal_price = get_price_at_timestamp(df, sample.signal.timestamp)
+                            
                             export_data.append({
                                 'pattern_type': sample.label,
                                 'timestamp': sample.signal.timestamp.isoformat(),
-                                'price': sample.signal.price,
+                                'price': signal_price,
                                 'confidence': sample.confidence,
                                 'metadata': str(sample.metadata)
                             })
@@ -1083,10 +1137,13 @@ def show_automatic_detection(data_manager, symbol, timeframe, days_back, min_con
                     signals_data = []
                     for signal in filtered_signals:
                         description = getattr(signal, 'description', 'Sin descripción')
+                        # Obtener precio del DataFrame
+                        signal_price = get_price_at_timestamp(df, signal.timestamp)
+                        
                         signals_data.append({
                             "Timestamp": signal.timestamp.strftime("%Y-%m-%d %H:%M"),
-                            "Fase": signal.phase.value,
-                            "Precio": f"${signal.price:.2f}",
+                            "Fase": signal.phase,
+                            "Precio": f"${signal_price:.2f}",
                             "Confianza": f"{signal.confidence:.2f}",
                             "Descripción": description[:50] + "..." if len(description) > 50 else description
                         })
@@ -1097,7 +1154,7 @@ def show_automatic_detection(data_manager, symbol, timeframe, days_back, min_con
                     # Distribución por fases
                     phase_counts = {}
                     for signal in filtered_signals:
-                        phase = signal.phase.value
+                        phase = signal.phase
                         phase_counts[phase] = phase_counts.get(phase, 0) + 1
                     
                     if phase_counts:
@@ -1209,10 +1266,13 @@ def show_scoring_system(data_manager, symbol, timeframe, days_back, min_confiden
                     
                     scoring_data = []
                     for signal, score in scored_signals:
+                        # Obtener precio del DataFrame
+                        signal_price = get_price_at_timestamp(df, signal.timestamp)
+                        
                         scoring_data.append({
                             "Timestamp": signal.timestamp.strftime("%Y-%m-%d %H:%M"),
-                            "Fase": signal.phase.value,
-                            "Precio": f"${signal.price:.2f}",
+                            "Fase": signal.phase,
+                            "Precio": f"${signal_price:.2f}",
                             "Puntuación Total": f"{score.overall_score:.2f}/5",
                             "Categoría": score.category,
                             "Volumen": f"{score.volume_score:.1f}",
@@ -1453,6 +1513,9 @@ def show_integrated_workflow(data_manager, symbol, timeframe, days_back):
                     # Calcular puntuación
                     score = scoring_system.score_signal(signal, window_data, signal_index - window_start)
                     
+                    # Obtener precio del DataFrame
+                    signal_price = get_price_at_timestamp(df, signal.timestamp)
+                    
                     # Crear muestra etiquetada
                     sample = LabeledSample(
                         timestamp=signal.timestamp,
@@ -1460,7 +1523,7 @@ def show_integrated_workflow(data_manager, symbol, timeframe, days_back):
                         timeframe=timeframe,
                         phase=signal.phase,
                         confidence=signal.confidence,
-                        price=signal.price,
+                        price=signal_price,
                         volume=window_data.loc[signal_idx, 'volume'] if signal_idx in window_data.index else 0,
                         features={
                             'reasoning': getattr(signal, 'description', 'Sin descripción'),
@@ -1613,22 +1676,25 @@ def create_price_chart_with_signals(df, signals):
     }
     
     for signal in signals:
-        color = colors.get(signal.phase.value, 'purple')
+        color = colors.get(signal.phase, 'purple')
+        
+        # Obtener precio del DataFrame
+        signal_price = get_price_at_timestamp(df, signal.timestamp)
         
         fig.add_trace(
             go.Scatter(
                 x=[signal.timestamp],
-                y=[signal.price],
+                y=[signal_price],
                 mode='markers',
                 marker=dict(
-                    symbol='triangle-up' if 'acumulación' in signal.phase.value.lower() else 'triangle-down',
+                    symbol='triangle-up' if 'acumulación' in signal.phase.lower() else 'triangle-down',
                     size=15,
                     color=color,
                     line=dict(width=2, color='white')
                 ),
-                name=f"{signal.phase.value} ({signal.confidence:.2f})",
-                hovertemplate=f"<b>{signal.phase.value}</b><br>" +
-                             f"Precio: ${signal.price:.2f}<br>" +
+                name=f"{signal.phase} ({signal.confidence:.2f})",
+                hovertemplate=f"<b>{signal.phase}</b><br>" +
+                             f"Precio: ${signal_price:.2f}<br>" +
                              f"Confianza: {signal.confidence:.2f}<br>" +
                              f"Descripción: {signal.description}<br>" +
                              "<extra></extra>"

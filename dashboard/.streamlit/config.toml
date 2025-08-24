@@ -3,6 +3,8 @@ showSidebarNavigation = false
 
 [server]
 headless = true
+fileWatcherType = "auto"
+runOnSave = true
 
 [theme]
 base = "dark"

@@ -1057,7 +1057,7 @@ class Phase2VerificationSystem:
                 'tests': [{'name': 'Rendimiento del sistema', 'passed': summary['performance_acceptable'], 'message': 'OK' if summary['performance_acceptable'] else 'Error'}]
             }
         
-        return report_dict
+        return report
     
     def run_scenario_test(self, scenario_type: str, symbol: str = "SCENARIO_TEST") -> Dict[str, Any]:
         """Ejecuta pruebas de escenarios específicos"""

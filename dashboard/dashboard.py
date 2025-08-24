@@ -13,7 +13,7 @@ import json
 import sqlite3
 
 # Configurar rutas del proyecto
-project_root = Path(r"c:\dev\trading_embedding")
+project_root = Path(r"c:\dev\trading-embedding")
 sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(project_root / 'src'))
 sys.path.insert(0, str(project_root / 'src' / 'data'))
@@ -33,15 +33,15 @@ except ImportError as e:
 
 # Importar páginas del dashboard
 try:
-    from dashboard.pages.home import show_home_page
-    from dashboard.pages.phase1_data import show_phase1_data_page
-    from dashboard.pages.phase2_analysis import show_phase2_analysis_page
-    from dashboard.pages.phase3_labeling import show_phase3_labeling_page
-    from dashboard.pages.system_verification import show_system_verification_page
-    from dashboard.pages.technical_analysis import show_technical_analysis_page
-    from dashboard.pages.realtime_monitoring import show_realtime_monitoring_page
-    from dashboard.pages.reports import show_reports_page
-    from dashboard.pages.hybrid_data_strategy import show_hybrid_data_strategy_page
+    from pages.home import show_home_page
+    from pages.phase1_data import show_phase1_data_page
+    from pages.phase2_analysis import show_phase2_analysis_page
+    from pages.phase3_labeling import show_phase3_labeling_page
+    from pages.system_verification import show_system_verification_page
+    from pages.technical_analysis import show_technical_analysis_page
+    from pages.realtime_monitoring import show_realtime_monitoring_page
+    from pages.reports import show_reports_page
+    from pages.hybrid_data_strategy import show_hybrid_data_strategy_page
 except ImportError as e:
     st.error(f"Error importando páginas: {e}")
     st.stop()
