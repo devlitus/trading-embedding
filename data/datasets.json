@@ -1,0 +1,17 @@
+[
+  {
+    "dataset_id": "fbbee2e4-a666-4398-a081-b81fa18d9c58",
+    "name": "wyckoff_patterns_20250824_1152",
+    "description": "",
+    "creation_date": "2025-08-24T11:52:15.122586",
+    "sample_count": 1,
+    "annotation_sessions": [],
+    "metadata": {
+      "creation_method": "manual_labeling",
+      "total_samples": 1,
+      "min_quality": 3,
+      "min_confidence": 0.5,
+      "include_uncertain": false
+    }
+  }
+]

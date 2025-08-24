@@ -1,0 +1,24 @@
+[
+  {
+    "timestamp": "2025-08-23T15:00:00",
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "pattern": "accumulation",
+    "confidence": 0.5,
+    "score": 3,
+    "data": {
+      "price": 114866.96,
+      "phase": "Neutral",
+      "original_confidence": 0.5
+    },
+    "signals": [
+      "Neutral"
+    ],
+    "metadata": {
+      "quality_score": 3,
+      "notes": "",
+      "labeling_timestamp": "2025-08-24T11:52:07.592270",
+      "ai_confidence": 0.5
+    }
+  }
+]
