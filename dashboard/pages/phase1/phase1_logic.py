@@ -7,6 +7,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 from .phase1_config import DATA_LIMIT, FALLBACK_LIMIT
+from src.utils.data_utils import validate_data_quality as validate_data_quality_core
 
 def get_data_manager():
     """Obtener instancia del DataManager."""
@@ -124,32 +125,30 @@ def show_system_stats_details(stats):
     st.caption(f"Última actualización: {stats['timestamp']}")
 
 def validate_data_quality(df, symbol, interval):
-    """Validar calidad de los datos."""
+    """Validar calidad de los datos usando función consolidada."""
     if df.empty:
         return {'status': 'error', 'message': 'No hay datos disponibles'}
     
+    # Usar función consolidada de data_utils
+    quality_metrics = validate_data_quality_core(df)
+    
     issues = []
     
-    # Verificar duplicados
-    if df.index.duplicated().any():
-        issues.append(f"Se encontraron {df.index.duplicated().sum()} timestamps duplicados")
+    # Convertir métricas a formato de issues
+    if quality_metrics['missing_values'] > 0:
+        issues.append(f"Se encontraron {quality_metrics['missing_values']} valores nulos")
     
-    # Verificar valores nulos
-    null_counts = df.isnull().sum()
-    if null_counts.any():
-        for col, count in null_counts.items():
-            if count > 0:
-                issues.append(f"Columna '{col}': {count} valores nulos")
+    if quality_metrics['duplicate_timestamps'] > 0:
+        issues.append(f"Se encontraron {quality_metrics['duplicate_timestamps']} timestamps duplicados")
     
-    # Verificar rangos de precios
-    if (df['high'] < df['low']).any():
+    if quality_metrics.get('invalid_candles', 0) > 0:
         issues.append("Precios máximos menores que mínimos detectados")
     
-    if (df['close'] > df['high']).any() or (df['close'] < df['low']).any():
-        issues.append("Precios de cierre fuera del rango high-low")
+    if quality_metrics.get('extreme_price_changes', 0) > 0:
+        issues.append(f"Se detectaron {quality_metrics['extreme_price_changes']} cambios de precio extremos")
     
-    # Verificar volumen negativo
-    if (df['volume'] < 0).any():
+    # Verificar volumen negativo si existe la columna
+    if 'volume' in df.columns and (df['volume'] < 0).any():
         issues.append("Volúmenes negativos detectados")
     
     if issues:

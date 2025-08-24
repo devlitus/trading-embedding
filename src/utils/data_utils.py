@@ -225,11 +225,22 @@ def assess_data_quality(data: pd.DataFrame,
     null_cells = normalized_data.isnull().sum().sum()
     completeness = (1 - null_cells / total_cells) * 100 if total_cells > 0 else 0
     
+    # Detectar duplicados por timestamp o índice
+    duplicates_count = 0
+    if 'timestamp' in normalized_data.columns:
+        duplicates_count = normalized_data.duplicated(subset=['timestamp']).sum()
+    elif 'datetime' in normalized_data.columns:
+        duplicates_count = normalized_data.duplicated(subset=['datetime']).sum()
+    elif hasattr(normalized_data.index, 'duplicated'):
+        duplicates_count = normalized_data.index.duplicated().sum()
+    else:
+        duplicates_count = normalized_data.duplicated().sum()
+    
     quality_metrics = {
         'total_rows': len(normalized_data),
         'total_columns': len(normalized_data.columns),
         'completeness_pct': round(completeness, 2),
-        'duplicates_count': normalized_data.duplicated().sum(),
+        'duplicates_count': duplicates_count,
         'null_values_count': int(null_cells),
         'date_continuity': 'good' if len(normalized_data) > 1 else 'insufficient',
         'has_required_columns': all(col in normalized_data.columns for col in required_cols),
