@@ -891,15 +891,25 @@ def show_dataset_management_redesigned(data_manager, symbol, timeframe):
                 # Convertir etiquetas a LabeledSamples
                 labeled_samples = []
                 for k, v in filtered_labels.items():
+                    original_pattern = v['original_pattern']
                     sample = LabeledSample(
-                        signal=v['original_pattern'],
-                        label=v['corrected_type'],
+                        timestamp=original_pattern.timestamp,
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        pattern=v['corrected_type'],
                         confidence=v['trader_confidence'],
+                        score=v['quality_score'],
+                        data={
+                            'price': get_price_at_timestamp(df, original_pattern.timestamp),
+                            'phase': original_pattern.phase,
+                            'original_confidence': original_pattern.confidence
+                        },
+                        signals=[original_pattern.phase],
                         metadata={
                             'quality_score': v['quality_score'],
                             'notes': v['notes'],
                             'labeling_timestamp': v['timestamp'].isoformat(),
-                            'ai_confidence': v['original_pattern'].confidence
+                            'ai_confidence': original_pattern.confidence
                         }
                     )
                     labeled_samples.append(sample)
@@ -1521,11 +1531,16 @@ def show_integrated_workflow(data_manager, symbol, timeframe, days_back):
                         timestamp=signal.timestamp,
                         symbol=symbol,
                         timeframe=timeframe,
-                        phase=signal.phase,
+                        pattern=signal.phase,
                         confidence=signal.confidence,
-                        price=signal_price,
-                        volume=window_data.loc[signal_idx, 'volume'] if signal_idx in window_data.index else 0,
-                        features={
+                        score=score.overall_score,
+                        data={
+                            'price': signal_price,
+                            'volume': window_data.loc[signal_idx, 'volume'] if signal_idx in window_data.index else 0,
+                            'phase': signal.phase
+                        },
+                        signals=[signal.phase],
+                        metadata={
                             'reasoning': getattr(signal, 'description', 'Sin descripción'),
                             'volume_score': score.volume_score,
                             'momentum_score': score.momentum_score,
