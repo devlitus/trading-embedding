@@ -6,10 +6,10 @@
 - **Python**: 3.8+ (requerido para compatibilidad con todas las librerías)
 - **Streamlit**: >=1.28.0 (Dashboard y UI)
 - **Plotly**: >=5.17.0 (Visualizaciones interactivas)
-- **Pandas**: 2.1.4 (Manipulación de datos)
-- **NumPy**: 1.24.3 (Cálculos numéricos)
-- **python-binance**: 1.0.19 (API de Binance)
-- **requests**: 2.31.0 (HTTP requests)
+- **Pandas**: >=2.1.4 (Manipulación de datos)
+- **NumPy**: >=1.24.3 (Cálculos numéricos)
+- **python-binance**: >=1.0.19 (API de Binance)
+- **requests**: >=2.31.0 (HTTP requests)
 
 ### Dependencias de Base de Datos y Caché
 - **SQLite3**: Incluido en Python estándar (Base de datos principal)
@@ -18,21 +18,24 @@
 - **python-dotenv**: 1.0.0 (Variables de entorno)
 
 ### Dependencias de Análisis Técnico
-- **TA**: 0.11.0 (Indicadores técnicos)
-- **SciPy**: 1.16.1 (Análisis científico)
-- **python-dateutil**: 2.8.2 (Manejo de fechas)
-- **pytz**: 2023.3 (Zonas horarias)
+- **TA**: >=0.11.0 (Indicadores técnicos)
+- **SciPy**: >=1.10.0 (Análisis científico)
+- **python-dateutil**: >=2.8.2 (Manejo de fechas)
+- **pytz**: >=2023.3 (Zonas horarias)
+- **matplotlib**: >=3.7.0 (Visualizaciones básicas)
 
 ### Dependencias de Logging y Monitoreo
-- **Loguru**: 0.7.2 (Sistema de logging avanzado)
-- **psutil**: 5.9.6 (Métricas del sistema)
+- **Loguru**: >=0.7.2 (Sistema de logging avanzado)
+- **psutil**: >=5.9.0 (Métricas del sistema)
+- **colorama**: >=0.4.6 (Colores en terminal)
 
 ## 🧪 2. FRAMEWORK DE TESTING
 
 ### Framework Principal
-- **pytest**: 7.4.3 (Framework de testing principal)
-- **pytest-cov**: 4.1.0 (Cobertura de código)
-- **pytest-mock**: 3.12.0 (Mocking para tests)
+- **pytest**: >=7.4.0 (Framework de testing principal)
+- **pytest-cov**: >=4.1.0 (Cobertura de código)
+- **pytest-mock**: >=3.12.0 (Mocking para tests)
+- **unittest**: Incluido en Python estándar (Tests básicos)
 
 ### Patrones de Testing
 - **Estructura de Tests**: Directorio `tests/` en la raíz del proyecto
@@ -46,6 +49,13 @@
 - **Tests de Integración**: Para flujos completos
 - **Tests de API**: Para endpoints de Binance (con mocking)
 - **Tests de Base de Datos**: Con bases de datos temporales
+- **Tests de Verificación**: `test_phase2.py` para análisis técnico
+- **Sistema de Verificación**: `verification_system.py` para validación completa
+
+### Archivos de Test Actuales
+- **test_phase2.py**: Tests para Phase 2 (Análisis Técnico)
+- **verification_system.py**: Sistema completo de verificación y validación
+- **tests/**: Directorio principal para tests unitarios e integración
 
 ## 🚫 3. APIS Y SERVICIOS RESTRINGIDOS
 
@@ -71,24 +81,51 @@
 ```
 src/
 ├── data/           # Capa de datos
+│   ├── binance_client.py
+│   ├── cache.py
+│   ├── data_access_layer.py
+│   ├── data_manager.py
+│   ├── data_strategy.py
+│   └── database.py
 ├── analysis/       # Análisis técnico
+│   ├── patterns/
+│   ├── trend/
+│   ├── pattern_recognition.py
+│   ├── technical_analysis.py
+│   ├── technical_indicators.py
+│   └── trend_detection.py
 ├── ml/            # Machine Learning
+│   ├── embeddings/
+│   ├── labeling/
+│   ├── training/
+│   ├── wyckoff/
+│   └── data_preprocessing.py
 ├── api/           # API endpoints
+│   ├── endpoints.py
+│   └── main.py
 ├── config/        # Configuración
-└── utils/         # Utilidades
+│   └── config_manager.py
+└── utils/         # Utilidades consolidadas
+    ├── analysis_utils.py  # Funciones de análisis centralizadas
+    ├── data_utils.py
+    ├── demo_utils.py
+    └── helpers.py
 ```
 
 ### Patrones Obligatorios
 - **Singleton**: Para ConfigManager y conexiones de BD
-- **Strategy Pattern**: Para diferentes fuentes de datos
+- **Strategy Pattern**: Para diferentes fuentes de datos (DataStrategy)
 - **Factory Pattern**: Para creación de indicadores técnicos
 - **Observer Pattern**: Para notificaciones en tiempo real
+- **Consolidation Pattern**: Funciones comunes centralizadas en `utils/analysis_utils.py`
 
 ### Principios de Diseño
 - **Single Responsibility**: Cada clase tiene una responsabilidad
 - **Dependency Injection**: Inyectar dependencias en constructores
 - **Interface Segregation**: Interfaces específicas y pequeñas
 - **Open/Closed**: Abierto para extensión, cerrado para modificación
+- **DRY (Don't Repeat Yourself)**: Código duplicado consolidado en utilidades
+- **Code Reusability**: Funciones comunes disponibles desde `analysis_utils.py`
 
 ## 📊 5. GESTIÓN DE DATOS
 
@@ -152,6 +189,19 @@ REDIS_URL=redis://localhost:6379/0
 - **TODO**: Usar formato `# TODO: descripción`
 - **FIXME**: Usar formato `# FIXME: descripción`
 - **README**: Mantener actualizado con cada cambio mayor
+
+### Funciones Consolidadas (analysis_utils.py)
+- **calculate_trend_strength()**: Función centralizada para cálculo de fuerza de tendencia
+  - Métodos disponibles: 'combined', 'regression', 'momentum'
+  - Reemplaza implementaciones locales en múltiples módulos
+- **calculate_support_resistance_levels()**: Detección unificada de niveles S/R
+  - Algoritmos: pivot points, clustering, volume profile
+  - Consolidada desde detector.py y technical_indicators.py
+
+### Archivos de Limpieza
+- **Archivos temporales**: Eliminados automáticamente (*.tmp, *.log, reportes con fecha)
+- **Reportes de verificación**: Solo mantener plantillas, eliminar reportes con timestamps
+- **Cache files**: Gestionados por .gitignore, no commitear al repositorio
 
 ## 🔒 8. SEGURIDAD
 
@@ -247,7 +297,37 @@ REDIS_URL=redis://localhost:6379/0
 ---
 
 **Última actualización**: 2025-01-09  
-**Versión**: 1.0  
-**Mantenedor**: DevAgent  
+**Versión**: 1.1  
+**Mantenedor**: DevAgent
+
+## 📋 13. REFACTORIZACIÓN Y MANTENIMIENTO
+
+### Funciones Consolidadas
+- **analysis_utils.py**: Módulo central para funciones de análisis técnico
+  - `calculate_trend_strength()`: Cálculo unificado de fuerza de tendencia
+  - `calculate_support_resistance_levels()`: Detección consolidada de S/R
+  - Elimina duplicación de código entre módulos
+
+### Archivos Eliminados/Consolidados
+- **Reportes temporales**: `detailed_verification_report_*.txt` eliminados
+- **Código duplicado**: Implementaciones locales reemplazadas por funciones centralizadas
+- **Imports no utilizados**: Revisión y limpieza completada
+
+### Archivos de Demostración Actuales
+- **demo_hybrid_strategy.py**: Demostración completa del sistema híbrido
+- **demo_ml_fase4.py**: Demo completo del pipeline ML (Phase 4)
+- **demo_ml_fase4_simple.py**: Demo simplificado para capacidades básicas ML
+- **integration_demo.py**: Demostración de integración entre componentes
+
+### Archivos de Configuración Consolidados
+- **config.yaml**: Configuración principal del sistema
+- **config_manager.py**: Gestor centralizado de configuración
+- **dashboard/.streamlit/config.toml**: Configuración específica de Streamlit
+
+### Mantenimiento Continuo
+- **Revisión mensual**: Identificar nuevo código duplicado
+- **Limpieza automática**: Scripts para eliminar archivos temporales
+- **Validación de imports**: Herramientas para detectar imports no utilizados
+- **Documentación**: Mantener sincronizada con cambios de arquitectura  
 
 > 💡 **Nota**: Estas reglas deben revisarse y actualizarse con cada fase del proyecto. Cualquier desviación debe ser documentada y justificada.

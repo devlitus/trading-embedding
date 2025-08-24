@@ -12,6 +12,10 @@ from datetime import datetime, timedelta
 import logging
 from src.data.database import TradingDatabase
 from src.data.cache import TradingCache
+from src.utils.data_utils import (
+    normalize_column_names, ensure_numeric_types, prepare_data_for_ml,
+    add_basic_features, assess_data_quality
+)
 
 logger = logging.getLogger(__name__)
 
@@ -215,38 +219,7 @@ class DataAccessLayer:
     
     def _prepare_for_ml(self, df: pd.DataFrame) -> pd.DataFrame:
         """Prepara datos para análisis de Machine Learning."""
-        if df.empty:
-            return df
-        
-        # Normalizar nombres de columnas de base de datos a formato estándar
-        column_mapping = {
-            'timestamp': 'datetime',
-            'open_price': 'open',
-            'high_price': 'high', 
-            'low_price': 'low',
-            'close_price': 'close',
-            'trades_count': 'trades_count'
-        }
-        
-        # Renombrar columnas si existen y no hay duplicados
-        for old_col, new_col in column_mapping.items():
-            if old_col in df.columns and new_col not in df.columns:
-                df = df.rename(columns={old_col: new_col})
-        
-        # Asegurar tipos de datos correctos
-        numeric_columns = ['open', 'high', 'low', 'close', 'volume', 'quote_volume']
-        for col in numeric_columns:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
-        
-        # Ordenar por fecha
-        if 'datetime' in df.columns:
-            df = df.sort_values('datetime').reset_index(drop=True)
-        
-        # Eliminar valores nulos
-        df = df.dropna()
-        
-        return df
+        return prepare_data_for_ml(df, include_features=True, drop_na=True)
     
     def _update_cache_async(self, symbol: str, interval: str, data: pd.DataFrame):
         """Actualiza cache de manera asíncrona (no bloquea)."""

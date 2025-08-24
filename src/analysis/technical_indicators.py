@@ -12,6 +12,10 @@ from ta.trend import SMAIndicator, EMAIndicator, MACD
 from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.volatility import BollingerBands, AverageTrueRange
 from ta.volume import OnBalanceVolumeIndicator, MFIIndicator
+from src.utils.analysis_utils import (
+    calculate_trend_strength, calculate_support_resistance_levels,
+    calculate_volatility_metrics, detect_price_patterns, calculate_momentum_indicators
+)
 
 
 class TechnicalIndicators:
@@ -224,13 +228,19 @@ class TechnicalIndicators:
         Returns:
             Tupla con series de soporte y resistencia
         """
-        # Soporte: mínimo móvil de los mínimos
-        support = df['low'].rolling(window=window).min()
+        # Usar utilidad consolidada
+        levels = calculate_support_resistance_levels(df, window=window)
         
-        # Resistencia: máximo móvil de los máximos
-        resistance = df['high'].rolling(window=window).max()
+        # Convertir a Series para compatibilidad
+        support_series = pd.Series(index=df.index, dtype=float)
+        resistance_series = pd.Series(index=df.index, dtype=float)
         
-        return support, resistance
+        if levels['support']:
+            support_series.iloc[-1] = levels['support'][0]
+        if levels['resistance']:
+            resistance_series.iloc[-1] = levels['resistance'][0]
+            
+        return support_series.fillna(method='ffill'), resistance_series.fillna(method='ffill')
     
     def get_overbought_oversold_signals(self, df: pd.DataFrame) -> Dict[str, pd.Series]:
         """
@@ -262,13 +272,9 @@ class TechnicalIndicators:
         Returns:
             Series con valores de 0 (sin tendencia) a 1 (tendencia fuerte)
         """
-        # Basado en la pendiente de la media móvil y la distancia del precio
-        sma_slope = df['sma_20'].diff(5) / df['sma_20'].shift(5)
-        price_distance = abs(df['close'] - df['sma_20']) / df['sma_20']
-        
-        # Normalizar entre 0 y 1
-        trend_strength = (abs(sma_slope) + price_distance) / 2
-        return np.clip(trend_strength, 0, 1)
+        # Usar utilidad consolidada y normalizar a 0-1
+        strength_100 = calculate_trend_strength(df, method='sma')
+        return strength_100 / 100
 
 
 def calculate_basic_indicators(df: pd.DataFrame) -> pd.DataFrame:

@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Optional, Any
 import logging
 import json
 from pathlib import Path
+from src.utils.data_utils import assess_data_quality, validate_ohlcv_data
 
 # Imports opcionales de sklearn
 try:
@@ -308,6 +309,12 @@ class ModelValidator:
                 
                 quality_report['quality_scores'].append(sample.score)
                 quality_report['confidence_scores'].append(sample.confidence)
+                
+                # Usar utilidad consolidada para validar datos OHLCV si están disponibles
+                if hasattr(sample, 'data') and isinstance(sample.data, pd.DataFrame):
+                    data_quality = assess_data_quality(sample.data)
+                    if 'issues' in data_quality:
+                        quality_report['data_issues'].extend(data_quality['issues'])
             
             # Calcular estadísticas
             avg_quality = np.mean(quality_report['quality_scores'])
@@ -319,7 +326,7 @@ class ModelValidator:
             quality_report['max_quality_score'] = float(np.max(quality_report['quality_scores']))
             
             # Detectar problemas
-            issues = []
+            issues = list(set(quality_report['data_issues']))  # Eliminar duplicados
             recommendations = []
             
             # Verificar balance de clases

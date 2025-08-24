@@ -419,12 +419,7 @@ class DataStrategy:
     
     def _calculate_rsi(self, prices: pd.Series, window: int = 14) -> pd.Series:
         """Calcula RSI (Relative Strength Index)."""
-        delta = prices.diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
-        rs = gain / loss
-        rsi = 100 - (100 / (1 + rs))
-        return rsi
+        return calculate_rsi(prices, window)
     
     def _normalize_column_names(self, data: pd.DataFrame) -> pd.DataFrame:
         """Normaliza nombres de columnas entre base de datos y CSV."""

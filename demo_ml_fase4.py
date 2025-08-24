@@ -23,44 +23,20 @@ from datetime import datetime
 # Agregar el directorio src al path
 sys.path.append(str(Path(__file__).parent / 'src'))
 
+# Importar utilidades comunes
+from utils.demo_utils import (
+    setup_project_path, setup_logging, print_banner, print_section,
+    generate_sample_ohlc_data, format_execution_time, create_demo_summary
+)
+
 from src.ml.training import MLTrainingPipeline
 from src.config.config_manager import ConfigManager
 
-def setup_logging():
-    """
-    Configura el sistema de logging para la demostración.
-    """
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler('demo_ml_fase4.log')
-        ]
-    )
-    
-    # Reducir verbosidad de algunas librerías
-    logging.getLogger('urllib3').setLevel(logging.WARNING)
-    logging.getLogger('requests').setLevel(logging.WARNING)
 
-def print_banner():
-    """
-    Imprime el banner de inicio de la demostración.
-    """
-    print("\n" + "="*80)
-    print("🤖 DEMOSTRACIÓN FASE 4: MACHINE LEARNING")
-    print("📊 Pipeline de Entrenamiento de Patrones Wyckoff")
-    print("🚀 Trading Embedding System")
-    print("="*80 + "\n")
 
-def print_section(title: str):
-    """
-    Imprime un separador de sección.
-    
-    Args:
-        title: Título de la sección
-    """
-    print(f"\n{'='*20} {title} {'='*20}")
+
+
+
 
 def demo_data_preparation(pipeline: MLTrainingPipeline):
     """
@@ -212,10 +188,10 @@ def demo_full_pipeline():
     """
     Ejecuta la demostración completa del pipeline de ML.
     """
-    print_banner()
+    print_banner("🤖 DEMOSTRACIÓN FASE 4: MACHINE LEARNING\n📊 Pipeline de Entrenamiento de Patrones Wyckoff\n🚀 Trading Embedding System")
     
     # Configurar logging
-    setup_logging()
+    logger = setup_logging('demo_ml_fase4.log')
     logger = logging.getLogger(__name__)
     
     logger.info("Iniciando demostración de Fase 4: Machine Learning")

@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple, Optional
 from scipy import stats
+from src.utils.analysis_utils import calculate_trend_strength
 
 
 class RegressionDetector:
@@ -164,19 +165,8 @@ class RegressionDetector:
         Returns:
             Serie con scores de fuerza (0-100)
         """
-        if 'regression_slope' not in df.columns:
-            df = self.detect(df)
-        
-        # Normalizar pendiente (valor absoluto)
-        normalized_slope = np.abs(df['regression_slope']) * 1000  # Escalar
-        
-        # R² como factor de confianza
-        confidence = df['regression_r_squared'] * 100
-        
-        # Combinar factores
-        strength = np.minimum(normalized_slope * confidence / 100, 100)
-        
-        return strength
+        # Usar utilidad consolidada con método de regresión
+        return calculate_trend_strength(df, method='regression')
     
     def detect_regression_divergence(self, df: pd.DataFrame) -> pd.Series:
         """

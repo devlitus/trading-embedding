@@ -14,14 +14,16 @@ import time
 # Agregar src al path
 sys.path.append(str(Path(__file__).parent / "src"))
 
+# Importar utilidades comunes
+from utils.demo_utils import (
+    setup_project_path, setup_logging, print_banner, print_section,
+    generate_sample_ohlc_data, format_execution_time, create_demo_summary
+)
+
 from src.data.data_access_layer import DataAccessLayer
 from src.data.data_strategy import DataStrategy, DataUsagePattern
 
-def print_section(title: str):
-    """Imprime una sección con formato."""
-    print("\n" + "="*60)
-    print(f" {title}")
-    print("="*60)
+
 
 def print_subsection(title: str):
     """Imprime una subsección con formato."""
@@ -350,8 +352,14 @@ def demo_performance_comparison():
 
 def main():
     """Función principal del demo."""
-    print("🚀 DEMO: Estrategia Híbrida de Datos para Trading")
+    print_banner("DEMO: Estrategia Híbrida de Datos para Trading")
     print("   Optimización inteligente según el caso de uso")
+    
+    # Configurar logging
+    logger = setup_logging('logs/hybrid_strategy_demo.log')
+    logger.info("Iniciando demostración de estrategia híbrida")
+    
+    start_time = time.time()
     
     try:
         # 1. Inicializar sistema
@@ -377,6 +385,18 @@ def main():
         # 4. Comparación de rendimiento
         demo_performance_comparison()
         
+        # Resumen final
+        execution_time = time.time() - start_time
+        
+        results = {
+            "Tiempo de ejecución": format_execution_time(execution_time),
+            "Componentes demostrados": "7",
+            "Estrategias evaluadas": "5",
+            "Estado": "✅ Completado exitosamente"
+        }
+        
+        print(create_demo_summary(results))
+        
         print_section("RESUMEN Y RECOMENDACIONES")
         print("✅ Demo completado exitosamente")
         print("\n💡 Recomendaciones de uso:")
@@ -390,6 +410,8 @@ def main():
         print("   • Ejecuta sync_data_sources() regularmente")
         print("   • Monitorea el rendimiento de cache")
         print("   • Revisa recomendaciones del sistema")
+        
+        logger.info(f"Demostración completada en {format_execution_time(execution_time)}")
         
     except Exception as e:
         print(f"\n❌ Error durante el demo: {str(e)}")

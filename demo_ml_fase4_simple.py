@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
 """
-Demo simplificado de Machine Learning - Fase 4
-Sistema de Trading con Embeddings y Análisis de Patrones Wyckoff
+Demo ML Fase 4 Simple - Trading Embedding System
 
-Este demo muestra las capacidades básicas del sistema ML sin dependencias complejas.
+Versión simplificada del demo de ML que muestra las capacidades básicas
+sin dependencias complejas.
 """
 
 import sys
 import os
-import argparse
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
+import time
 import logging
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+from pathlib import Path
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+# Configurar path del proyecto
+project_root = Path(__file__).parent
+src_path = project_root / "src"
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
+
+# Importar utilidades comunes
+from utils.demo_utils import (
+    setup_project_path, setup_logging, print_banner, print_section,
+    generate_sample_ohlc_data, format_execution_time, create_demo_summary
+)
 
 # Agregar el directorio src al path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -29,55 +38,7 @@ except ImportError as e:
     logger.error(f"Error importando módulos ML: {e}")
     sys.exit(1)
 
-def generate_sample_data(symbol: str = "BTCUSDT", days: int = 30) -> pd.DataFrame:
-    """
-    Genera datos de muestra para la demostración
-    """
-    logger.info(f"Generando datos de muestra para {symbol} ({days} días)")
-    
-    # Generar fechas
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
-    dates = pd.date_range(start=start_date, end=end_date, freq='1H')
-    
-    # Generar datos OHLC sintéticos
-    np.random.seed(42)  # Para reproducibilidad
-    base_price = 45000  # Precio base de BTC
-    
-    data = []
-    current_price = base_price
-    
-    for i, date in enumerate(dates):
-        # Simular movimiento de precio con tendencia y volatilidad
-        change = np.random.normal(0, 0.02)  # 2% volatilidad promedio
-        current_price *= (1 + change)
-        
-        # Generar OHLC
-        high_factor = 1 + abs(np.random.normal(0, 0.01))
-        low_factor = 1 - abs(np.random.normal(0, 0.01))
-        
-        open_price = current_price
-        high_price = current_price * high_factor
-        low_price = current_price * low_factor
-        close_price = current_price * (1 + np.random.normal(0, 0.005))
-        
-        # Volumen sintético
-        volume = np.random.lognormal(10, 1)
-        
-        data.append({
-            'timestamp': date,
-            'open': open_price,
-            'high': high_price,
-            'low': low_price,
-            'close': close_price,
-            'volume': volume
-        })
-        
-        current_price = close_price
-    
-    df = pd.DataFrame(data)
-    logger.info(f"Generados {len(df)} registros de datos")
-    return df
+
 
 def demo_data_preprocessing():
     """
@@ -245,39 +206,57 @@ def demo_dataset_management():
 
 def main():
     """
-    Función principal del demo
+    Función principal del demo simple
     """
-    parser = argparse.ArgumentParser(description='Demo ML Fase 4 - Simplificado')
-    parser.add_argument('--quick', action='store_true', help='Ejecutar demo rápido')
-    parser.add_argument('--full', action='store_true', help='Ejecutar demo completo')
-    args = parser.parse_args()
+    print_banner("DEMO ML FASE 4 SIMPLE - TRADING EMBEDDING SYSTEM")
+    print("\nDemo simplificado de capacidades de Machine Learning:")
+    print("• Preprocesamiento de datos")
+    print("• Análisis de patrones Wyckoff básico")
+    print("• Clasificación simple")
+    print("• Gestión de datasets")
     
-    logger.info("🚀 Iniciando Demo ML Fase 4 - Simplificado")
-    logger.info("=" * 50)
+    # Configurar logging
+    logger = setup_logging('logs/ml_fase4_simple_demo.log')
+    logger.info("Iniciando demo ML Fase 4 Simple")
+    
+    start_time = time.time()
     
     try:
-        if args.quick or not args.full:
-            logger.info("Ejecutando demo rápido...")
+        # 1. Generar datos de muestra
+        print_section("1. GENERACIÓN DE DATOS DE MUESTRA")
+        
+        data = generate_sample_ohlc_data("BTCUSDT", 500, "1h")
+        print(f"✓ Datos generados: {len(data)} registros")
+        print(f"  Período: {data['timestamp'].min()} - {data['timestamp'].max()}")
+        print(f"  Precio inicial: ${data['close'].iloc[0]:,.2f}")
+        print(f"  Precio final: ${data['close'].iloc[-1]:,.2f}")
+        print(f"  Cambio total: {((data['close'].iloc[-1] / data['close'].iloc[0]) - 1) * 100:.2f}%")
+        
+        # Demo básico de preprocesamiento
+        features, sequences, targets = demo_data_preprocessing()
+        
+        # Demo básico de análisis Wyckoff
+        wyckoff_features, phases = demo_wyckoff_analysis()
+        
+        logger.info("✅ Demo rápido completado exitosamente")
             
-            # Demo básico de preprocesamiento
-            features, sequences, targets = demo_data_preprocessing()
-            
-            # Demo básico de análisis Wyckoff
-            wyckoff_features, phases = demo_wyckoff_analysis()
-            
-            logger.info("✅ Demo rápido completado exitosamente")
-            
-        if args.full:
-            logger.info("Ejecutando demo completo...")
-            
-            # Todos los demos
-            demo_data_preprocessing()
-            demo_wyckoff_analysis()
-            demo_classification()
-            demo_dataset_management()
-            
-            logger.info("✅ Demo completo ejecutado exitosamente")
-            
+        # Resumen final
+        execution_time = time.time() - start_time
+        
+        results = {
+            "Tiempo de ejecución": format_execution_time(execution_time),
+            "Datos procesados": f"{len(data)} registros",
+            "Features extraídas": f"{len(features.columns) if 'features' in locals() else 'N/A'}",
+            "Patrones identificados": f"{len(phases) if 'phases' in locals() else 'N/A'}",
+            "Estado": "✓ Completado exitosamente"
+        }
+        
+        print(create_demo_summary(results))
+        print("\n🎯 Demo simple completado exitosamente")
+        print("   Funcionalidades básicas de ML verificadas")
+        
+        logger.info(f"Demo simple completado en {format_execution_time(execution_time)}")
+        
     except Exception as e:
         logger.error(f"❌ Error durante la ejecución del demo: {e}")
         raise
