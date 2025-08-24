@@ -1,10 +1,20 @@
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any, Union
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
-from sklearn.model_selection import train_test_split
 import logging
 from datetime import datetime, timedelta
+
+# Importaciones opcionales para scikit-learn
+try:
+    from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
+    from sklearn.model_selection import train_test_split
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    StandardScaler = None
+    MinMaxScaler = None
+    RobustScaler = None
+    train_test_split = None
 
 from ..data.data_manager import DataManager
 from .labeling.dataset_manager import DatasetManager, LabeledSample
@@ -32,11 +42,15 @@ class DataPreprocessor:
         self.prediction_horizon = prediction_horizon
         
         # Inicializar escaladores
-        self.scalers = {
-            'standard': StandardScaler(),
-            'minmax': MinMaxScaler(),
-            'robust': RobustScaler()
-        }
+        if SKLEARN_AVAILABLE:
+            self.scalers = {
+                'standard': StandardScaler(),
+                'minmax': MinMaxScaler(),
+                'robust': RobustScaler()
+            }
+        else:
+            self.scalers = {}
+            self.logger.warning("scikit-learn no está disponible. Funcionalidad de escalado deshabilitada.")
         
         self.fitted_scalers = {}
         self.feature_columns = ['open', 'high', 'low', 'close', 'volume']
@@ -141,6 +155,10 @@ class DataPreprocessor:
         Returns:
             DataFrame con características escaladas
         """
+        if not SKLEARN_AVAILABLE:
+            self.logger.warning("scikit-learn no está disponible. Devolviendo datos sin escalar.")
+            return data.copy()
+        
         df = data.copy()
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         
@@ -148,9 +166,12 @@ class DataPreprocessor:
         
         if fit:
             # Ajustar y transformar
-            scaler = self.scalers[self.scaler_type]
-            df[numeric_cols] = scaler.fit_transform(df[numeric_cols].fillna(0))
-            self.fitted_scalers[scaler_name] = scaler
+            if self.scaler_type in self.scalers:
+                scaler = self.scalers[self.scaler_type]
+                df[numeric_cols] = scaler.fit_transform(df[numeric_cols].fillna(0))
+                self.fitted_scalers[scaler_name] = scaler
+            else:
+                self.logger.warning(f"Escalador {self.scaler_type} no disponible.")
         else:
             # Solo transformar
             if scaler_name in self.fitted_scalers:
@@ -238,9 +259,16 @@ class DataPreprocessor:
         y = np.array(all_labels)
         
         # División train/test
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=random_state, stratify=y
-        )
+        if SKLEARN_AVAILABLE and train_test_split is not None:
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=random_state, stratify=y
+            )
+        else:
+            # División manual simple si sklearn no está disponible
+            split_idx = int(len(X) * (1 - test_size))
+            X_train, X_test = X[:split_idx], X[split_idx:]
+            y_train, y_test = y[:split_idx], y[split_idx:]
+            self.logger.warning("Usando división manual de datos (sklearn no disponible).")
         
         return {
             'X_train': X_train,
