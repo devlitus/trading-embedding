@@ -888,7 +888,7 @@ class Phase2VerificationSystem:
                                 symbol: str = "VERIFICATION_TEST",
                                 include_performance: bool = True,
                                 include_data_quality: bool = True,
-                                include_ml_models: bool = False) -> ValidationReport:
+                                include_ml_models: bool = False) -> Dict[str, Any]:
         """Ejecuta verificación completa del sistema"""
         print("\n" + "="*80)
         print("INICIANDO VERIFICACIÓN COMPLETA DE LA FASE 2")
@@ -1057,7 +1057,7 @@ class Phase2VerificationSystem:
                 'tests': [{'name': 'Rendimiento del sistema', 'passed': summary['performance_acceptable'], 'message': 'OK' if summary['performance_acceptable'] else 'Error'}]
             }
         
-        return report
+        return report_dict
     
     def run_scenario_test(self, scenario_type: str, symbol: str = "SCENARIO_TEST") -> Dict[str, Any]:
         """Ejecuta pruebas de escenarios específicos"""
